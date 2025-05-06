@@ -6,17 +6,26 @@ const Medicine = require('../models/medicine')
 
 // Create Order
 exports.createOrder = async (req, res) => {
-  const user_id = req.userId
+  const user_id = req.userId;
+
   try {
     const {
       address_id,
-      ETA,
+      ETA = 10,
       medicines,
       total_amount,
       deliveryFee = 0,
       handlingFee = 0,
       isActive = true,
     } = req.body;
+
+    // ✅ Basic validation to avoid empty or invalid data
+    if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !total_amount) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields or invalid medicines list.',
+      });
+    }
 
     const newOrder = new Order({
       user_id,
@@ -55,10 +64,13 @@ exports.createOrder = async (req, res) => {
       message: 'Order confirmed. No delivery boy available',
       order: newOrder,
     });
+
   } catch (err) {
-    return res.status(500).json({ success: false, message: err.message });
+    console.error("Order creation error:", err);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 // Manually assign delivery boy to an order
 exports.assignOrder = async (req, res) => {
@@ -110,8 +122,9 @@ exports.getAllOrders = async (req, res) => {
 
 // Get single order by ID
 exports.getOrderById = async (req, res) => {
+  const userId = req.userId
   try {
-    const order = await Order.findById(req.params.id)
+    const order = await Order.findById({_id:req.params.id , user_id:userId})
       .populate('user_id')
       .populate('address_id')
       .populate('deliveryboy_id');
