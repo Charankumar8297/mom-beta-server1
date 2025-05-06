@@ -9,15 +9,16 @@ const {
   updateOrderStatus,
   updateOrderIsActive, 
 } = require('../controllers/order.controllers');
+const userAuth = require('../middlewares/userAuth');
 
 
-router.post('/add-order', createOrder);
+router.post('/add-order',userAuth, createOrder);
 
 
 router.get('/allorders', getAllOrders);
 
 
-router.get('/:id', getOrderById);
+router.get('/orderbyid/:id', getOrderById);
 
 
 router.post('/:id/assign', assignOrder);

@@ -2,6 +2,7 @@ const Order = require('../models/order.models');
 const DeliveryBoy = require('../models/DeliveryBoy');
 const Earning = require('../models/Earning');
 const DeliveryAssessment = require('../models/DeliveryAssessment');
+const Medicine = require('../models/medicine')
 
 // Create Order
 exports.createOrder = async (req, res) => {
@@ -114,6 +115,7 @@ exports.getOrderById = async (req, res) => {
       .populate('user_id')
       .populate('address_id')
       .populate('deliveryboy_id');
+    
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
