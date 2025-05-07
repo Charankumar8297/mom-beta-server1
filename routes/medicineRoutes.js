@@ -10,7 +10,7 @@ const {
 } = require('../controllers/medicineController');
 
 router.post("/add", upload.single('imageUrl'), medicineAdd);
-router.get("/", getAllMedicines);
+router.get("/all", getAllMedicines);
 router.get("/:id", getMedicineById);
 router.put("/:id", upload.single('imageUrl'), updateMedicine);
 router.delete("/:id", deleteMedicine);
