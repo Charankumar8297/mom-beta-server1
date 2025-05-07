@@ -3,9 +3,9 @@ const router = express.Router();
 const upload = require('../middlewares/upload');
 const {addPrescription,deletePrescription,getPrescriptionById,getAllPrescriptions} = require('../controllers/prescriptionController');
 
-router.post('/', upload.single('image'), addPrescription);            
+router.post('/add-pre', upload.single('image'), addPrescription);            
 router.delete('/:id', deletePrescription);                            
 router.get('/:id', getPrescriptionById);                              
-router.get('/', getAllPrescriptions);                                 
+router.get('/allpre', getAllPrescriptions);                                 
 
 module.exports = router;

@@ -3,6 +3,6 @@ const router = express.Router();
 const { addSuggestion, getSuggestions } = require("../controllers/suggestionController");
 
 router.post("/add", addSuggestion);
-router.get("/", getSuggestions);
+router.get("/sug", getSuggestions);
 
 module.exports = router;

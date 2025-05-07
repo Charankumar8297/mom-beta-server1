@@ -10,8 +10,8 @@ const {
 
 const router = express.Router();
 
-router.post('/', createEarning);
-router.get('/', getAllEarnings);
+router.post('/add-create', createEarning);
+router.get('/allearning', getAllEarnings);
 router.get('/:id', getEarningByAgentId);
 router.put('/:id', updateEarning);
 router.post('/:delivery_agent_id/order', addOrderEarning);
