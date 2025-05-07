@@ -66,3 +66,17 @@ exports.deleteDeliveryBoy = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+exports.login = async (req, res) => {
+  const { phoneNumber } = req.body;
+  try {
+      const DeliveryBoys = await DeliveryBoy.findOne({ phoneNumber });
+      if (!DeliveryBoys) {
+          return res.status(404).json({ message: 'DeliveryBoy not found' });
+      }
+      await DeliveryBoys.save();
+      res.status(200).json({ message: 'logged' });
+  } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server error 123' });
+  }
+};

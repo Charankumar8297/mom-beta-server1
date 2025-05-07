@@ -26,7 +26,18 @@ const addressSchema = mongoose.Schema({
         type: Number,
         required: [ true, "please add the  state"],
     },
-   
+    currentLocation:{
+        lattitude:{
+            type: Number,
+           required: false 
+
+        },
+        logitude:{
+            type: Number,
+            required: false
+
+        }
+    }
 
 
 },

@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    primeAddress: {
+        type: String,
+        default: ""
+      }
+
 })
 
 const Users = mongoose.model('User', userSchema) 

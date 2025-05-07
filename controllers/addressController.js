@@ -1,58 +1,96 @@
 const Address = require('../models/Addres');
 
-const createAddress = async(req, res)=> {
-    try{
-        const {userid, state,city,street,pincode} = req.body
+// Create new address
+const createAddress = async (req, res) => {
+  try {
+    const { userid, state, city, street, pincode, currentLocation } = req.body;
 
-        const address = new Address({
-            userid,
-            state,
-            city,
-            street,
-            pincode
-        })
-        await address.save()
-        res.status(201).json(address)
-    }catch(error){
-        console.log("there is an error:", error)
-        res.status(500).json({message: 'Server error'})
-    }
-}
+    const address = new Address({
+      userid,
+      state,
+      city,
+      street,
+      pincode,
+      currentLocation: {
+        lattitude: currentLocation?.lattitude,
+        logitude: currentLocation?.logitude,
+      },
+    });
 
-const getAddress = async(req, res)=> {
-    try{
-        const address = await Address.find()
-        res.status(200).json(address)
-}catch(error){
-    console.log("there is an error:", error)
-    res.status(500).json({message:'Server error'})
-}
-}
-const updateAddress = async(req, res)=> {
-    try{
-        const {userid, state, city, street,pincode} = req.body
+    await address.save();
+    res.status(201).json({ success: true, message: 'Address created', address });
 
-        const myAddress = await Address.findByIdAndUpdate(req.params.id,
-        {userid,state, city, street, pincode}
-    )
-    if(!myAddress){
-        return res.status(404).json({message:"address not found"})
-    }
-    res.status(200).json(myAddress)
-    }
-    catch(error){
-        console.error('there is an error:', error)
-        res.status(500).json({message:"Server error"})
-    }
-}
+  } catch (error) {
+    console.error("Create Address Error:", error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
 
-const deleteAddress = async(req, res)=> {
-    try{
-        const deleteAddress = await Address.findByIdAndDelete(req.params.id)
-        res.status(204).send()
-    }catch(error){
-        console.error('there is an error:', error )
-        res.status(500).json({message:"Server error"})
+// Get all addresses
+const getAddress = async (req, res) => {
+  try {
+    const addresses = await Address.find();
+    res.status(200).json({ success: true, addresses });
+
+  } catch (error) {
+    console.error("Get Address Error:", error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Update address
+const updateAddress = async (req, res) => {
+  try {
+    const { userid, state, city, street, pincode, currentLocation } = req.body;
+
+    const updated = await Address.findByIdAndUpdate(
+      req.params.id,
+      {
+        userid,
+        state,
+        city,
+        street,
+        pincode,
+        currentLocation: {
+          lattitude: currentLocation?.lattitude,
+          logitude: currentLocation?.logitude,
+        },
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: "Address not found" });
     }
-}
-module.exports= {createAddress, getAddress,updateAddress,deleteAddress}
+
+    res.status(200).json({ success: true, message: "Address updated", address: updated });
+
+  } catch (error) {
+    console.error("Update Address Error:", error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+// Delete address
+const deleteAddress = async (req, res) => {
+  try {
+    const deleted = await Address.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: "Address not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Address deleted" });
+
+  } catch (error) {
+    console.error("Delete Address Error:", error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+module.exports = {
+  createAddress,
+  getAddress,
+  updateAddress,
+  deleteAddress
+};

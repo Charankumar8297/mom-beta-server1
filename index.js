@@ -9,7 +9,7 @@ const orderRoutes = require("./routes/order.routes")
 const medicineRoutes = require("./routes/medicineRoutes")
 const DeliveryAssessment = require('./routes/DeliveryAssessmentRoutes')
 const Earning = require('./routes/EarningRoutes')
-
+const Active = require('./routes/ActiveRoutes')
 
 const port = process.env.PORT || 3001
 
@@ -43,6 +43,7 @@ app.use('/api/prescriptions' , require("./routes/prescriptionRoutes"))
 app.use('/api/suggestions', require("./routes/suggestionRoutes"))
 app.use('/api/medicines' , medicineRoutes)
 app.use('/api/medicine', medicineRoutes);
+app.use('/api', Active )
 
 
 
