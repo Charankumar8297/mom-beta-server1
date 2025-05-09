@@ -24,11 +24,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    primeAddress: {
+    primaryAddress: { 
         type: String,
         default: ""
       }
-
 })
 
 const Users = mongoose.model('User', userSchema) 

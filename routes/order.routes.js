@@ -31,7 +31,7 @@ router.patch('/:id/status', updateOrderStatus);
 
 router.patch('/:id/active', updateOrderIsActive);
 
-
+router.get('/getorderuser/:_id', userAuth ,getOrderByUserId);
 router.get('/getorderdeliveryboy/:_id',userAuth ,orderByDeliveryBoyId );
 
 module.exports = router;
