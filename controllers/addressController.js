@@ -88,9 +88,19 @@ const deleteAddress = async (req, res) => {
   }
 };
 
+const getAddressByUser = async  ()=>{
+  const userId = req.userId 
+  try{
+     const addresses = await Address.find({userid:userId}) 
+     res.status(200).json({data:addresses , status:true})
+  }catch(e){
+    res.status(500).json({message:"Internal sever error" , e})
+  }
+}
+
 module.exports = {
   createAddress,
   getAddress,
   updateAddress,
-  deleteAddress
+  deleteAddress ,getAddressByUser
 };
