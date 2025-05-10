@@ -1,4 +1,4 @@
-const Order = require('../models/medicine')
+
 const Earning = require('../models/Earning')
 
 const createEarning = async (req, res) => {

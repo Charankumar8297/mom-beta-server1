@@ -1,11 +1,13 @@
 const Donar = require('../models/donar.models');
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken"); 
 
-const createDonar = async(req,res)=>{
-    try{
-        const {userId, name,bloodGroup, dob, phone, email, country, state, district,city, pincode, availability}=req.body;
+const createDonar = async (req, res) => {
+    try {
+        console.log("Request Body:", req.body); 
+
+        const { name, bloodGroup, dob, phone, email, country, state, district, city, pincode, availability } = req.body;
+
         const donar = new Donar({
-            userId,
             name,
             bloodGroup,
             dob,
@@ -17,84 +19,87 @@ const createDonar = async(req,res)=>{
             city,
             pincode,
             availability
-        })
+        });
+
         await donar.save();
-        res.status(201).json(donar);
+        res.status(201).json({ message: 'Donor registered successfully!', donar });
+    } catch (error) {
+        console.error("Error creating donor:", error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
     }
-    catch(error)
-    {
-        console.log("There is an error: ",error);
-        res.status(500).json({message:'Server Error'})
-    }
-}
+};
 
 const editDonar = async (req, res) => {
     try {
-        const { userId,name,
-            bloodGroup,
-            dob,
-            phone,
-            email,
-            country,
-            state,
-            district,
-            city,
-            pincode,
-            availability } = req.body;
+        const { name, bloodGroup, dob, phone, email, country, state, district, city, pincode, availability } = req.body;
+        const { id } = req.params;
 
-        const updatedDonar = await Donar.findOneAndUpdate(
-            { userId },
+        const updatedDonar = await Donar.findByIdAndUpdate(
+            id,
             {
                 name,
-            bloodGroup,
-            dob,
-            phone,
-            email,
-            country,
-            state,
-            district,
-            city,
-            pincode,
-            availability
+                bloodGroup,
+                dob,
+                phone,
+                email,
+                country,
+                state,
+                district,
+                city,
+                pincode,
+                availability
             },
-            { new: true } 
+            { new: true }
         );
 
         if (!updatedDonar) {
-            return res.status(404).json({ message: "Donar not found" });
+            return res.status(404).json({ message: "Donor not found" });
         }
 
-        res.status(200).json(updatedDonar);
+        res.status(200).json({ message: "Donor updated successfully!", donar: updatedDonar });
     } catch (error) {
-        console.error("There is an error:", error);
-        res.status(500).json({ message: 'Server Error' });
+        console.error("Error updating donor:", error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
 
-const getDonar= async(req, res) => {
-    try{
-        const donar = await Donar.find().populate("userId")
-        res.status(200).json(donar)
-    }catch(error){
-        console.error("There is an error:", error)
-        res.status(500).json({message: "server error"})
+const getDonar = async (req, res) => {
+    try {
+        const { state, district, city, bloodGroup } = req.query;
+        const filter = {};
+
+        if (state && state.trim() !== "") filter.state = state.trim();
+        if (district && district.trim() !== "") filter.district = district.trim();
+        if (city && city.trim() !== "") filter.city = city.trim();
+        if (bloodGroup && bloodGroup.trim() !== "") filter.bloodGroup = bloodGroup.trim();
+
+        const donors = await Donar.find(filter);
+
+        if (!donors.length) {
+            return res.status(404).json({ message: "No donors found for the selected criteria." });
+        }
+
+        res.status(200).json(donors);
+    } catch (error) {
+        console.error("Error fetching donor:", error);
+        res.status(500).json({ message: "Server error", error: error.message });
     }
-}
+};
+
 
 const deleteDonar = async (req, res) => {
-    const id = req.params.id;
-    console.log("Deleting Donar with ID:", id);
+    const { id } = req.params;
+    console.log("Deleting Donor with ID:", id);
     try {
-        const deletedDonar = await Donar.deleteOne({ _id: id });
-        if (deletedDonar.deletedCount === 0) {
-            return res.status(404).json({ msg: "Donar not found" });
+        const deletedDonar = await Donar.findByIdAndDelete(id);
+        if (!deletedDonar) {
+            return res.status(404).json({ message: "Donor not found" });
         }
-        res.status(200).json({ data: deletedDonar, msg: "Donar successfully deleted", status: true });
-    } catch (e) {
-        console.error("Delete error:", e);
-        res.status(500).json({ msg: "Internal server error", error: e });
+        res.status(200).json({ message: "Donor successfully deleted", deletedDonar });
+    } catch (error) {
+        console.error("Delete error:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
     }
 };
 
-
-module.exports = {createDonar, editDonar, getDonar, deleteDonar};
+module.exports = { createDonar, editDonar, getDonar, deleteDonar };

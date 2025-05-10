@@ -2,7 +2,7 @@ const Order = require('../models/order.models');
 const DeliveryBoy = require('../models/DeliveryBoy');
 const Earning = require('../models/Earning');
 const DeliveryAssessment = require('../models/DeliveryAssessment');
-const Medicine = require('../models/medicine')
+const Medicine = require('../models/medicines/Productdetail.model.')
 
 // Create Order
 exports.createOrder = async (req, res) => {

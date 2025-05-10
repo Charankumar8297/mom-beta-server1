@@ -10,7 +10,7 @@ router.get('/all', startRoute)
 router.post('/login',otpLogin)
 
 //register user
-router.put('/register', userAuth ,registerUsers)
+router.post('/register', userAuth ,registerUsers)
 
 //verify otp
 router.post('/verify-otp', verifyOtp)
