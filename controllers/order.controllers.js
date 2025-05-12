@@ -355,3 +355,18 @@ exports.deleteOrdersByUserId = async (req, res) => {
   }
 };
 
+exports.deleteAllOrders = async (req, res) => {
+  try {
+    const result = await Order.deleteMany({});
+    return res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} order(s) deleted successfully.`,
+    });
+  } catch (err) {
+    console.error('Error deleting all orders:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};

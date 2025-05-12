@@ -1,4 +1,5 @@
 const express = require('express');
+const userAuth = require('../middlewares/userAuth');
 const router = express.Router();
 const {
   addToWishlist,
@@ -16,7 +17,7 @@ router.post('/remove', removeFromWishlist);
 
 // Route to get a user's wishlist
 
-router.get('/:userId', getWishlist);
+router.get('/:userId',   userAuth, getWishlist);
 
 module.exports = router;
  
