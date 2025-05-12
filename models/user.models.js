@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
     },
     primaryAddress: { 
         type: String,
-        default: ""
+        
       }
 })
 

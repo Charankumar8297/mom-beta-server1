@@ -8,8 +8,7 @@ const path = require('path');
 const createSubCategory = async (req, res) => {
   try {
     const { subcategory_name, category, medicines } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
-
+    
     const existingCategory = await Category.findById(category);
     if (!existingCategory) {
       return res.status(404).json({ message: "Category not found" });

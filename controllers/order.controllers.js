@@ -13,34 +13,42 @@ exports.createOrder = async (req, res) => {
       address_id,
       ETA = 10,
       medicines,
+      subtotal,
+      shippingFee = 0,
+      tax = 0,
+      discount = 0,
       total_amount,
-      deliveryFee = 0,
-      handlingFee = 0,
+      paymentMethod = 'COD',
       isActive = true,
     } = req.body;
 
-    // ✅ Basic validation to avoid empty or invalid data
-    if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !total_amount) {
+    // ✅ Validate required fields
+    if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !subtotal || !total_amount) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields or invalid medicines list.',
       });
     }
 
+    // ✅ Create new order
     const newOrder = new Order({
       user_id,
       address_id,
       ETA,
       medicines,
+      subtotal,
+      shippingFee,
+      tax,
+      discount,
       total_amount,
-      deliveryFee,
-      handlingFee,
+      paymentMethod,
       isActive,
       status: 'confirmed',
     });
 
     await newOrder.save();
 
+    // ✅ Assign delivery boy if available
     const availableBoys = await DeliveryBoy.find({ isAvailable: 'yes' });
 
     if (availableBoys.length > 0) {
@@ -70,6 +78,7 @@ exports.createOrder = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
 
 
 // Manually assign delivery boy to an order
@@ -246,6 +255,8 @@ exports.updateOrderIsActive = async (req, res) => {
   }
 };
 
+
+
 // Internal: Update earnings and delivery assessment on delivery
 
 const updateEarnings = async (order) => {
@@ -322,6 +333,25 @@ exports.updateOrderLocation = async (req, res) => {
     return res.status(200).json({ success: true, message: 'Location updated', order });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+exports.deleteOrdersByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const result = await Order.deleteMany({ user_id: userId });
+
+    return res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} order(s) deleted successfully for user ID: ${userId}`,
+    });
+  } catch (err) {
+    console.error('Error deleting user orders:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
   }
 };
 

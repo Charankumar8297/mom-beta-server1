@@ -4,9 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const createMedicine = async (req, res) => {
   try {
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
     const {
-      medicine_name,price,prescriptionDrug,description,use,ingredients,dose,manufacturer,notFor,store,expiryDate,
+      medicine_name,price,prescriptionDrug,description,use,ingredients,dose,manufacturer,notFor,store,expiryDate,imageUrl,
       manufactureDate,
       subCategory, 
     } = req.body;
@@ -75,11 +74,9 @@ const deleteMedicine = async (req, res) => {
 const getMedicinesBySubCategory = async (req, res) => {
   try {
     const subcategoryId = req.params.subcategory_id;
-    const medicines = await Medicine.find({ subcategory: subcategoryId }).populate('subcategories');
+    const medicines = await Medicine.find({ subcategories: subcategoryId });
     
-    if (medicines.length === 0) {
-      return res.status(404).json({ message: 'No medicines found for this subcategory.' });
-    }
+   
     
     res.status(200).json(medicines);
   } catch (err) {

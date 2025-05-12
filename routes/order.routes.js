@@ -9,12 +9,14 @@ const {
   updateOrderStatus,
   updateOrderIsActive, 
    getOrderByUserId,
-   orderByDeliveryBoyId
+   orderByDeliveryBoyId,
+   deleteOrdersByUserId
+
 } = require('../controllers/order.controllers');
 const userAuth = require('../middlewares/userAuth');
 
 
-router.post('/add-order',userAuth, createOrder);
+router.post('/add-order', userAuth, createOrder);
 
 
 router.get('/allorders', getAllOrders);
@@ -33,5 +35,6 @@ router.patch('/:id/active', updateOrderIsActive);
 
 router.get('/getorderuser/:_id', userAuth ,getOrderByUserId);
 router.get('/getorderdeliveryboy/:_id',userAuth ,orderByDeliveryBoyId );
+router.delete('/delete-orders-by-user/:userId', userAuth, deleteOrdersByUserId);
 
 module.exports = router;
