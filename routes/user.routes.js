@@ -19,7 +19,7 @@ router.post('/verify-otp', verifyOtp)
 router.delete('/delete-user/:id', deleteUser)
 
 //get user details 
-router.get('/user-details' , userAuth, getUserDetails)
+router.get('/user-details' ,userAuth,  getUserDetails)
 
 //send mail otp     
 router.post('/email-otp', emailOtp )
