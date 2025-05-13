@@ -40,7 +40,7 @@ const getAddress = async (req, res) => {
 };
 
 const makePrimaryAddress = async (req, res) => {
-  const userId = req.user.id; // coming from userAuth middleware
+  const userId = req.userId; 
   const addressId = req.params.id;
 
   try {
@@ -58,7 +58,7 @@ const makePrimaryAddress = async (req, res) => {
     await address.save();
 
     // 4. Update user record with primary address ID
-    await Users.findByIdAndUpdate(userId, { primaryAddress: addressId });
+    await User.findByIdAndUpdate(userId, { primaryAddress: addressId });
 
     res.status(200).json({
       success: true,
@@ -67,8 +67,8 @@ const makePrimaryAddress = async (req, res) => {
     });
   } catch (error) {
     console.error("Set Primary Address Error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
-  }
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };
 
 // Update address
@@ -121,19 +121,23 @@ const deleteAddress = async (req, res) => {
   }
 };
 
-const getAddressByUser = async  ()=>{
-  const userId = req.userId 
-  try{
-     const addresses = await Address.find({userid:userId}) 
-     res.status(200).json({data:addresses , status:true})
-  }catch(e){
-    res.status(500).json({message:"Internal sever error" , e})
+const getAddressByUser = async (req, res) => {
+  const userId = req.userId;
+
+  try {
+    const addresses = await Address.find({ userid: userId });
+    res.status(200).json({ data: addresses, status: true });
+  } catch (e) {
+    console.error("Get Address Error:", e);
+    res.status(500).json({ message: "Internal server error", error: e.message });
   }
-}
+};
 
 module.exports = {
   createAddress,
   getAddress,
   updateAddress,
-  deleteAddress ,getAddressByUser,makePrimaryAddress
+  deleteAddress,
+  getAddressByUser,
+  makePrimaryAddress,
 };
