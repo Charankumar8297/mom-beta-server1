@@ -11,7 +11,7 @@ const orderSchema = new mongoose.Schema({
     default: 'confirmed',
   },
 
-  ETA: { type: Number, default: 10 },
+  ETA: { type : Number, default: 10 },
 
   medicines: [{
     medicine_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Medicine' },

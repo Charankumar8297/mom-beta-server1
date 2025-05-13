@@ -37,7 +37,7 @@ const createMedicine = async (req, res) => {
 
 const getMedicines = async (req, res) => {
   try {
-    const medicines = await Medicine.find().populate('subcategories');
+    const medicines = await Medicine.find().populate('subcategories._Id');
     res.status(200).json(medicines);
   } catch (err) {
     res.status(500).json({ message: err.message });

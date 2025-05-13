@@ -2,14 +2,15 @@ const Wishlist = require('../models/wishlist');
 
 // Add a product to the wishlist
 const addToWishlist = async (req, res) => {
-  const { userId, productId } = req.body;
+  const {productId } = req.body;
+  const userId  = req.userId
 
   try {
     let wishlist = await Wishlist.findOne({ userId });
 
     if (wishlist) {
      
-      if (wishlist.products.includes(productId._id)) {
+      if (wishlist.products.includes(productId)) {
         return res.status(400).json({ message: 'Product already in wishlist.' });
       }
       wishlist.products.push(productId);
