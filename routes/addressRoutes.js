@@ -8,7 +8,7 @@ const userAuth = require('../middlewares/userAuth')
 //get , post, put/patch, delete
 
 
-router.post('/add-address', addressController.createAddress)
+router.post('/add-address',userAuth, addressController.createAddress)
 router.get('/alladdress', addressController.getAddress)
 router.put('/update/:id', addressController.updateAddress)
 router.delete('/delete/:id', addressController.deleteAddress)
