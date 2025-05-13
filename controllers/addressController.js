@@ -40,7 +40,7 @@ const getAddress = async (req, res) => {
 };
 
 const makePrimaryAddress = async (req, res) => {
-  const userId = req.userId; 
+  const userId = req.userId; // Assume this is set by an authentication middleware
   const addressId = req.params.id;
 
   try {

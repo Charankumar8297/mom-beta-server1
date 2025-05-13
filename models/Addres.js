@@ -1,45 +1,42 @@
 const mongoose = require('mongoose');
 
-const addressSchema = mongoose.Schema({
+const addressSchema = mongoose.Schema(
+  {
     userid: {
-        type: String,
-        required: [true, "please add the userid"],
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',  // Reference to the User model
+      required: [true, "Please add the user ID"],
     },
-
     state: {
-        type: String,
-        required: [true, "please add the state"],
+      type: String,
+      required: [true, "Please add the state"],
     },
-
     city: {
-        type: String,
-        required: [true, "please add the city"],
+      type: String,
+      required: [true, "Please add the city"],
     },
-
     street: {
-        type: String,
-        required: [true, "please add the street"],
+      type: String,
+      required: [true, "Please add the street"],
     },
-
     pincode: {
-        type: Number,
-        required: [true, "please add the pincode"],
+      type: Number,
+      required: [true, "Please add the pincode"],
     },
-
     currentLocation: {
-        lattitude: {
-            type: Number,
-            required: false
-        },
-        logitude: {
-            type: Number,
-            required: false
-        }
+      lattitude: {
+        type: Number,
+        required: false,
+      },
+      logitude: {
+        type: Number,
+        required: false,
+      },
     },
-
-   
-}, {
+  },
+  {
     timestamps: true,
-});
+  }
+);
 
-module.exports = mongoose.model("Addres", addressSchema);
+module.exports = mongoose.model('Addres', addressSchema);

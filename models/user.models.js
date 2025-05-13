@@ -37,10 +37,11 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    primaryAddress: { 
-        type: String,
-        default: ""
-      }
+    primaryAddress: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Addres',  // Reference to the Address model
+    default: null,  // Make sure default is null until the user selects a primary address
+  },
 })
 
 const Users = mongoose.model('User', userSchema) 
