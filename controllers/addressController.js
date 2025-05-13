@@ -1,7 +1,6 @@
 const Address = require('../models/Addres');
-const User = require('../models/user.models')
+const User = require('../models/user.models');
 const mongoose = require('mongoose');
-
 
 // Create new address
 const createAddress = async (req, res) => {
@@ -9,7 +8,7 @@ const createAddress = async (req, res) => {
     const { userid, state, city, street, pincode, currentLocation } = req.body;
 
     const address = new Address({
-      userid,
+      userid: new mongoose.Types.ObjectId(userid),  // ensure ObjectId
       state,
       city,
       street,
@@ -34,32 +33,28 @@ const getAddress = async (req, res) => {
   try {
     const addresses = await Address.find();
     res.status(200).json({ success: true, addresses });
-
   } catch (error) {
     console.error("Get Address Error:", error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
+// Make primary address
 const makePrimaryAddress = async (req, res) => {
-  const userId = req.userId; // Assume this is set by an authentication middleware
+  const userId = req.userId;
   const addressId = req.params.id;
 
   try {
-    // 1. Check if the address exists and belongs to the user
     const address = await Address.findOne({ _id: addressId, userid: userId });
     if (!address) {
       return res.status(404).json({ success: false, message: "Address not found or unauthorized" });
     }
 
-    // 2. Set all other addresses to isPrimary: false
     await Address.updateMany({ userid: userId }, { $set: { isPrimary: false } });
 
-    // 3. Set selected address to isPrimary: true
     address.isPrimary = true;
     await address.save();
 
-    // 4. Update user record with primary address ID
     await User.findByIdAndUpdate(userId, { primaryAddress: addressId });
 
     res.status(200).json({
@@ -81,7 +76,7 @@ const updateAddress = async (req, res) => {
     const updated = await Address.findByIdAndUpdate(
       req.params.id,
       {
-        userid,
+        userid: new mongoose.Types.ObjectId(userid), // ensure ObjectId
         state,
         city,
         street,
@@ -99,7 +94,6 @@ const updateAddress = async (req, res) => {
     }
 
     res.status(200).json({ success: true, message: "Address updated", address: updated });
-
   } catch (error) {
     console.error("Update Address Error:", error);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -116,22 +110,22 @@ const deleteAddress = async (req, res) => {
     }
 
     res.status(200).json({ success: true, message: "Address deleted" });
-
   } catch (error) {
     console.error("Delete Address Error:", error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-
+// Get address by user
 const getAddressByUser = async (req, res) => {
-  const userId = req.userId; // Assume this comes from authentication middleware
+  const userId = req.userId;
 
   try {
-    // Convert userId string to ObjectId
     const objectId = new mongoose.Types.ObjectId(userId);
 
-    const addresses = await Address.find({ userid: objectId }).populate('userid');
+    const addresses = await Address.find({ userid: objectId })
+      .populate('userid')
+      .lean(); // Optional: for performance
 
     res.status(200).json({ data: addresses, status: true });
   } catch (e) {
