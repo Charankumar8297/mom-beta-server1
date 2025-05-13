@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const userAuth = require('../middlewares/userAuth')
-const { registerUsers, otpLogin, startRoute, verifyOtp, deleteUser, getUserDetails, emailOtp,updateUser } = require('../controllers/user.controllers')
+const { createUser,registerUsers, otpLogin, startRoute, verifyOtp, deleteUser, getUserDetails, emailOtp,updateUser,updateUserById  } = require('../controllers/user.controllers')
 
 //starter route
 router.get('/all', startRoute)
@@ -10,23 +10,24 @@ router.get('/all', startRoute)
 router.post('/login',otpLogin)
 
 //register user
-router.post('/register', userAuth ,registerUsers)
+router.put('/register', userAuth ,registerUsers)
 
 //verify otp
 router.post('/verify-otp', verifyOtp)
 
 // delete user
-router.delete('/delete-user/:id', userAuth , deleteUser)
+router.delete('/delete-user/:id', deleteUser)
 
 //get user details 
-router.get('/user-details' , userAuth , getUserDetails)
+router.get('/user-details' , getUserDetails)
 
-//send mail otp 
+//send mail otp     
 router.post('/email-otp', emailOtp )
 
-router.put('/update/:id', updateUser);
+router.put('/updat/:id',updateUser)
 
-
+router.put('/user/update/:id', updateUserById);
+router.post('/post',createUser)
 
 
 

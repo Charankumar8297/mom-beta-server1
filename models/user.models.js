@@ -6,8 +6,7 @@ const userSchema = new mongoose.Schema({
     },
     mobileNo:{
         type: String,
-        required: true,
-        unique: true
+       
     },
     dateOfBirth:{
         type: Date,
@@ -16,7 +15,21 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum:["male" , "female" , "other"],
     },
-    isAdmin:{
+    email:
+    {
+        type:String,
+    },
+    age:
+    {
+        type:Number
+    },
+    bloodgroup:
+    {
+
+        type:String
+    },
+    isAdmin:
+    {
         type: Boolean,
         default: false
     },
@@ -26,9 +39,9 @@ const userSchema = new mongoose.Schema({
     },
     primaryAddress: { 
         type: String,
-        
+        default: ""
       }
 })
 
 const Users = mongoose.model('User', userSchema) 
-module.exports = Users;  
+module.exports = Users;
