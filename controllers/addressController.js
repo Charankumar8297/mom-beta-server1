@@ -1,4 +1,5 @@
 const Address = require('../models/Addres');
+const User = require('../models/user.models')
 
 // Create new address
 const createAddress = async (req, res) => {
@@ -36,6 +37,38 @@ const getAddress = async (req, res) => {
     console.error("Get Address Error:", error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
+};
+
+const makePrimaryAddress = async (req, res) => {
+  const userId = req.user.id; // coming from userAuth middleware
+  const addressId = req.params.id;
+
+  try {
+    // 1. Check if the address exists and belongs to the user
+    const address = await Address.findOne({ _id: addressId, userid: userId });
+    if (!address) {
+      return res.status(404).json({ success: false, message: "Address not found or unauthorized" });
+    }
+
+    // 2. Set all other addresses to isPrimary: false
+    await Address.updateMany({ userid: userId }, { $set: { isPrimary: false } });
+
+    // 3. Set selected address to isPrimary: true
+    address.isPrimary = true;
+    await address.save();
+
+    // 4. Update user record with primary address ID
+    await Users.findByIdAndUpdate(userId, { primaryAddress: addressId });
+
+    res.status(200).json({
+      success: true,
+      message: "Primary address set successfully",
+      address,
+    });
+  } catch (error) {
+    console.error("Set Primary Address Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
 };
 
 // Update address
@@ -102,5 +135,5 @@ module.exports = {
   createAddress,
   getAddress,
   updateAddress,
-  deleteAddress ,getAddressByUser
+  deleteAddress ,getAddressByUser,makePrimaryAddress
 };

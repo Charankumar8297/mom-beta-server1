@@ -13,6 +13,7 @@ router.get('/alladdress', addressController.getAddress)
 router.put('/update/:id', addressController.updateAddress)
 router.delete('/delete/:id', addressController.deleteAddress)
 router.get("/address" , userAuth , addressController.getAddressByUser)
+router.put('/make-primary/:id', userAuth, addressController.makePrimaryAddress);
 
 
-module.exports = router
+module.exports = router 
