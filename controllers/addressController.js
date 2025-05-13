@@ -126,7 +126,8 @@ const deleteAddress = async (req, res) => {
 
 const getAddressByUser = async (req, res) => {
   try {
-    const userId = mongoose.Types.ObjectId(req.userId); // Convert to ObjectId
+    const userId = new mongoose.Types.ObjectId(req.userId); // ✅ fixed this line
+
     const addresses = await Address.find({ userid: userId });
 
     res.status(200).json({ data: addresses, status: true });
