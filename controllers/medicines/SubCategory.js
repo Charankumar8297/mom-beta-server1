@@ -7,7 +7,7 @@ const path = require('path');
 
 const createSubCategory = async (req, res) => {
   try {
-    const { subcategory_name, category, medicines } = req.body;
+    const { subcategory_name, category, medicines,imageUrl} = req.body;
     
     const existingCategory = await Category.findById(category);
     if (!existingCategory) {
