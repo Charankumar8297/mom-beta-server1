@@ -125,10 +125,13 @@ const deleteAddress = async (req, res) => {
 
 
 const getAddressByUser = async (req, res) => {
-  try {
-    const userId = new mongoose.Types.ObjectId(req.userId); // ✅ fixed this line
+  const userId = req.userId; // Assume this comes from authentication middleware
 
-    const addresses = await Address.find({ userid: userId });
+  try {
+    // Convert userId string to ObjectId
+    const objectId = new mongoose.Types.ObjectId(userId);
+
+    const addresses = await Address.find({ userid: objectId });
 
     res.status(200).json({ data: addresses, status: true });
   } catch (e) {
