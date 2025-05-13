@@ -5,4 +5,4 @@ const { addSuggestion, getSuggestions } = require("../controllers/suggestionCont
 router.post("/add", addSuggestion);
 router.get("/sug", getSuggestions);
 
-module.exports = router;
+module.exports = router;

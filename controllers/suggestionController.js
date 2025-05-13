@@ -2,11 +2,11 @@ const Suggestion = require("../models/suggestionModel");
 
 exports.addSuggestion = async (req, res) => {
     try {
-        const { userId, suggestion } = req.body;
-        if (!userId || !suggestion) {
-            return res.status(400).json({ message: "userId and suggestion are required" });
-        }
-        const newSuggestion = new Suggestion({ userId, suggestion });
+        const { userId, suggestion ,suggestionType, isTechnical, isNonTechincal} = req.body;
+        // if (!userId || !suggestion || !isTechnical || !isNonTechincal) {
+        //     return res.status(400).json({ message: "userId and suggestion are required" });
+        // }
+        const newSuggestion = new Suggestion({ userId, suggestion, suggestionType, isTechnical, isNonTechincal });
         await newSuggestion.save();
 
         res.status(201).json({
@@ -22,6 +22,7 @@ exports.addSuggestion = async (req, res) => {
     }
 };
 
+
 exports.getSuggestions = async (req, res) => {
     try {
         const suggestions = await Suggestion.find().sort({ createdAt: -1 });
@@ -30,6 +31,6 @@ exports.getSuggestions = async (req, res) => {
         res.status(500).json({
             message: "Error fetching suggestions",
             error: error.message
-        });
-    }
+        });
+    }
 };
