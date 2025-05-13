@@ -131,7 +131,7 @@ const getAddressByUser = async (req, res) => {
     // Convert userId string to ObjectId
     const objectId = new mongoose.Types.ObjectId(userId);
 
-    const addresses = await Address.find({ userid: objectId });
+    const addresses = await Address.find({ userid: objectId }).populate('userid');
 
     res.status(200).json({ data: addresses, status: true });
   } catch (e) {
