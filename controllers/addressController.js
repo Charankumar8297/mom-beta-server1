@@ -117,15 +117,16 @@ const deleteAddress = async (req, res) => {
 };
 
 const getAddressByUser = async (req, res) => {
-  const userId = req.userId;
+  const userId = req.userId; // Assuming req.userId is already set by middleware
 
   try {
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid User ID" });
     }
-    const objectId = new mongoose.Types.ObjectId(userId);
-    const addresses = await Address.find({ userid: objectId })
-      .populate('userid') 
+
+    // Find all addresses for the user
+    const addresses = await Address.find({ userid: userId })
+      .populate('userid') // Populate user data if necessary
       .lean();
 
     if (!addresses || addresses.length === 0) {
@@ -138,8 +139,6 @@ const getAddressByUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: e.message });
   }
 };
-
-
 
   
 
