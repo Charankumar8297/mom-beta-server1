@@ -36,7 +36,7 @@ router.patch('/:id/active', updateOrderIsActive);
 router.delete('/delete-all-orders', deleteAllOrders);
 
 
-router.get('/getorderuser/:_id', userAuth ,getOrderByUserId);
+router.get('/getorderuser', userAuth ,getOrderByUserId);
 router.get('/getorderdeliveryboy/:_id',userAuth ,orderByDeliveryBoyId );
 router.delete('/delete-orders-by-user/:userId', userAuth, deleteOrdersByUserId);
 

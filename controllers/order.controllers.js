@@ -152,21 +152,15 @@ exports.getOrderById = async (req, res) => {
 exports.orderByDeliveryBoyId = async (req, res) => {
   try {
     const { _id } = req.params;
-
-    
-
    
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ success: false, message: "Invalid delivery boy ID" });
     }
 
     const deliveryboyId = new mongoose.Types.ObjectId(_id);
-
     const orders = await Order.find({ deliveryboy_id: deliveryboyId })
       .populate('user_id')
       .populate('address_id');
-
-    
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({ success: false, message: "Order not found" });
@@ -181,7 +175,7 @@ exports.orderByDeliveryBoyId = async (req, res) => {
 };
 
 exports.getOrderByUserId = async (req, res) => {
-  const userId = req.params.id; 
+  const userId = req.userId; 
 
   try {
     const orders = await Order.find({
