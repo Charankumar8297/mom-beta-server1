@@ -85,7 +85,7 @@ const User = require('../models/user.models');
 const getUserDetails = async (req, res) => {
     const userId = req.userId;
     try {
-        const userDetails = await User.findById({ userId })
+        const userDetails = await User.findById( userId )
         if (!userDetails) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -197,6 +197,8 @@ const getUserDetails = async (req, res) => {
 
                 const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
 
+                
+
                 req.session.otp = null; // Clear OTP
                 req.session.userId = user._id;
                 req.session.mobileNo = user.mobileNo;
@@ -236,7 +238,7 @@ const getUserDetails = async (req, res) => {
     const { id } = req.params;
 
     try {
-        const user = await Users.findById(id);
+        const user = await User.findById(id);
 
         if (!user) {
         return res.status(404).json({ message: 'User not found' });
