@@ -4,7 +4,7 @@ const addressSchema = mongoose.Schema(
   {
     userid: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'user',  
+      ref: 'User',  
       required: [true, "Please add the user ID"],
     },
     state: {

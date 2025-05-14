@@ -39,8 +39,8 @@ const userSchema = new mongoose.Schema({
     },
     primaryAddress: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Addres',  // Reference to the Address model
-    default: null,  // Make sure default is null until the user selects a primary address
+    ref: 'Addres', 
+    default: null,  
   },
 })
 
