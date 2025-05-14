@@ -177,12 +177,14 @@ exports.orderByDeliveryBoyId = async (req, res) => {
 };
 
 exports.getOrderByUserId = async (req, res) => {
-  const userId = mongoose.Types.ObjectId(req.userId);
-
   try {
-    const orders = await Order.find({
-      user_id: userId
-    })
+    const userId = req.userId;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ success: false, message: 'Invalid User ID' });
+    }
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    const orders = await Order.find({ user_id: userObjectId })
       .populate('user_id')
       .populate('address_id')
       .populate('deliveryboy_id');
@@ -196,10 +198,11 @@ exports.getOrderByUserId = async (req, res) => {
 
     res.status(200).json({ success: true, orders });
   } catch (err) {
-    console.error('Error:', err); // Log any error for debugging
+    console.error('Error:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 
 // Update order status
