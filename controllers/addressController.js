@@ -116,16 +116,21 @@ const deleteAddress = async (req, res) => {
   }
 };
 
-// Get address by user
 const getAddressByUser = async (req, res) => {
   const userId = req.userId;
 
   try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid User ID" });
+    }
     const objectId = new mongoose.Types.ObjectId(userId);
-
     const addresses = await Address.find({ userid: objectId })
-      .populate('userid')
-      .lean(); // Optional: for performance
+      .populate('userid') 
+      .lean();
+
+    if (!addresses || addresses.length === 0) {
+      return res.status(404).json({ message: "No addresses found for this user" });
+    }
 
     res.status(200).json({ data: addresses, status: true });
   } catch (e) {
@@ -133,6 +138,10 @@ const getAddressByUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: e.message });
   }
 };
+
+
+
+  
 
 module.exports = {
   createAddress,
