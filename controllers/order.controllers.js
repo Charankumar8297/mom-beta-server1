@@ -175,7 +175,7 @@ exports.orderByDeliveryBoyId = async (req, res) => {
 };
 
 exports.getOrderByUserId = async (req, res) => {
-  const userId = req.userId; 
+  const userId = mongoose.Types.ObjectId(req.userId);
 
   try {
     const orders = await Order.find({
@@ -194,9 +194,11 @@ exports.getOrderByUserId = async (req, res) => {
 
     res.status(200).json({ success: true, orders });
   } catch (err) {
+    console.error('Error:', err); // Log any error for debugging
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // Update order status
 exports.updateOrderStatus = async (req, res) => {
