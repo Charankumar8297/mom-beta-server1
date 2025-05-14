@@ -179,9 +179,7 @@ exports.getOrderByUserId = async (req, res) => {
 
   try {
     const orders = await Order.find({
-      user_id: userId,
-      deliveryboy_id: { $ne: null },
-      address_id: { $ne: null },
+      user_id: userId
     })
       .populate('user_id')
       .populate('address_id')
