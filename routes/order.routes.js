@@ -23,7 +23,7 @@ router.post('/add-order', userAuth, createOrder);
 router.get('/allorders', getAllOrders);
 
 
-router.get('/orderbyid/:id' , userAuth , getOrderById);
+router.get('/orderbyid' , userAuth , getOrderById);
 
 
 router.post('/:id/assign', assignOrder);
