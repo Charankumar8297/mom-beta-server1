@@ -28,6 +28,7 @@ router.put('/updat/:id',updateUser)
 
 router.put('/user/update/:id', updateUserById);
 router.post('/post',createUser)
+router.put('/updateAddress' , userAuth, )
 
 
 

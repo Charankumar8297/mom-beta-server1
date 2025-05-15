@@ -1,4 +1,5 @@
 const Wishlist = require('../models/wishlist');
+const mongoose = require("mongoose")
 
 // Add a product to the wishlist
 const addToWishlist = async (req, res) => {
@@ -58,7 +59,7 @@ const getWishlist = async (req, res) => {
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: 'Invalid user ID format.' });
     }
-    const userObjectId = mongoose.Types.ObjectId(userId);
+    const userObjectId = new mongoose.Types.ObjectId(userId);
     const wishlist = await Wishlist.findOne({ userId: userObjectId }).populate('products');
 
     if (!wishlist) {
