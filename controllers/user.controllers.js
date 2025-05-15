@@ -199,11 +199,11 @@ const getUserDetails = async (req, res) => {
 
                 
 
-                req.session.otp = null; // Clear OTP
+                req.session.otp = null; 
                 req.session.userId = user._id;
                 req.session.mobileNo = user.mobileNo;
 
-                const isExist = !!(user.name && user.dateOfBirth && user.gender);
+                const isExist = !!(user.name);
 
                 return res.status(200).json({ message: 'OTP verified successfully', token, isExist });
             } else {
@@ -253,7 +253,7 @@ const getUserDetails = async (req, res) => {
 
 
 const updateUserById = async (req, res) => {
-    const { id } = req.params; // User ID from route
+    const { id } = req.params; 
     const {
                 name,
                 mobileNo,
@@ -265,7 +265,7 @@ const updateUserById = async (req, res) => {
                 isAdmin,
                 isRegistered,
                 primaryAddress
-    } = req.body; // Fields to update
+    } = req.body; 
 
     try {
         const updatedUser = await User.findByIdAndUpdate(
