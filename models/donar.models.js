@@ -23,7 +23,7 @@ const donarSchema = new mongoose.Schema({
         match: /.+\@.+\..+/
     },
   country: { type: String, 
-    required: true
+    
   },
   state: { type: String, 
     required: true 
@@ -38,7 +38,7 @@ const donarSchema = new mongoose.Schema({
 
   },
   pincode: { type: String, 
-    required: true 
+   
 
   },
   availability: { type: Boolean, 

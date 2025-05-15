@@ -51,9 +51,15 @@ const removeFromWishlist = async (req, res) => {
 // Get a user's wishlist
 const getWishlist = async (req, res) => {
   const userId = req.userId;
-
+  if (!userId) {
+    return res.status(400).json({ message: 'User ID is required.' });
+  }  
   try {
-    const wishlist = await Wishlist.findOne({ userId }).populate('products');
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID format.' });
+    }
+    const userObjectId = mongoose.Types.ObjectId(userId);
+    const wishlist = await Wishlist.findOne({ userObjectId }).populate('products');
 
     if (!wishlist) {
       return res.status(404).json({ message: 'Wishlist not found.' });
@@ -61,7 +67,8 @@ const getWishlist = async (req, res) => {
 
     res.status(200).json({ wishlist });
   } catch (error) {
-    res.status(500).json({ message: 'Server error.', error });
+    console.error(error);
+    res.status(500).json({ message: 'Server error.', error: error.message });
   }
 };
 
