@@ -59,7 +59,7 @@ const getWishlist = async (req, res) => {
       return res.status(400).json({ message: 'Invalid user ID format.' });
     }
     const userObjectId = mongoose.Types.ObjectId(userId);
-    const wishlist = await Wishlist.findOne({ userObjectId }).populate('products');
+    const wishlist = await Wishlist.findOne({ userId: userObjectId }).populate('products');
 
     if (!wishlist) {
       return res.status(404).json({ message: 'Wishlist not found.' });
