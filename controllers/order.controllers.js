@@ -185,6 +185,7 @@ exports.getOrderByUserId = async (req, res) => {
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
     const orders = await Order.find({ user_id: userObjectId })
+      .populate('medicines.medicine_id')
       .populate('user_id')
       .populate('address_id')
       .populate('deliveryboy_id');
