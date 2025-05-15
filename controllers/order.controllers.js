@@ -24,7 +24,6 @@ exports.createOrder = async (req, res) => {
       isActive = true,
     } = req.body;
 
-    // ✅ Validate required fields
     if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !subtotal || !total_amount) {
       return res.status(400).json({
         success: false,
@@ -32,7 +31,6 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    // ✅ Create new order
     const newOrder = new Order({
       user_id,
       address_id,
@@ -185,7 +183,10 @@ exports.getOrderByUserId = async (req, res) => {
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
     const orders = await Order.find({ user_id: userObjectId })
-      .populate('medicines.medicine_id')
+      .populate({
+        path: 'medicines.medicine_id',
+        select: 'imageUrl medicine_name '
+      })
       .populate('user_id')
       .populate('address_id')
       .populate('deliveryboy_id');
