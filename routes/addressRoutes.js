@@ -11,7 +11,7 @@ const userAuth = require('../middlewares/userAuth')
 router.post('/add-address',userAuth, addressController.createAddress)
 router.get('/alladdress', addressController.getAddress)
 router.put('/update',userAuth, addressController.updateAddress)
-router.delete('/delete',userAuth, addressController.deleteAddress)
+router.delete('/delete/:id',userAuth, addressController.deleteAddress)
 router.get("/address" , userAuth , addressController.getAddressByUser)
 router.put('/make-primary', userAuth, addressController.makePrimaryAddress);
 

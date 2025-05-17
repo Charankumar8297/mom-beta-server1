@@ -11,7 +11,7 @@ const createAddress = async (req, res) => {
       userid: new mongoose.Types.ObjectId(userid),  // ensure ObjectId
       state,
       city,
-      street,
+      street, 
       pincode,
       currentLocation: {
         lattitude: currentLocation?.lattitude,
@@ -126,7 +126,7 @@ const getAddressByUser = async (req, res) => {
 
     // Find all addresses for the user
     const addresses = await Address.find({ userid: userId })
-      .populate('userid') // Populate user data if necessary
+      .populate('') // Populate user data if necessary
       .lean();
 
     if (!addresses || addresses.length === 0) {

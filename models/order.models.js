@@ -15,6 +15,8 @@ const orderSchema = new mongoose.Schema({
 
   medicines: [{
     medicine_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Medicine' },
+    name:{type:String , required:true},
+    imageUrl:{type:String , required:true},
     quantity: { type: Number, required: true },
     price: { type: Number, required: true },
   }],
