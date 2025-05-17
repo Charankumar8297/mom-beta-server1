@@ -11,7 +11,7 @@ const {
 router.post('/add',userAuth, addToWishlist);
 
 
-router.post('/remove',userAuth, removeFromWishlist);
+router.delete('/remove',userAuth, removeFromWishlist);
 
 
 router.get('/getwishlist',userAuth, getWishlist);

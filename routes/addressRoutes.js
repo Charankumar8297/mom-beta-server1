@@ -10,10 +10,10 @@ const userAuth = require('../middlewares/userAuth')
 
 router.post('/add-address',userAuth, addressController.createAddress)
 router.get('/alladdress', addressController.getAddress)
-router.put('/update/:id', addressController.updateAddress)
-router.delete('/delete/:id', addressController.deleteAddress)
+router.put('/update',userAuth, addressController.updateAddress)
+router.delete('/delete',userAuth, addressController.deleteAddress)
 router.get("/address" , userAuth , addressController.getAddressByUser)
-router.put('/make-primary/:id', userAuth, addressController.makePrimaryAddress);
+router.put('/make-primary', userAuth, addressController.makePrimaryAddress);
 
 
 module.exports = router 
