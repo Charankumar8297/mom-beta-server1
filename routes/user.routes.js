@@ -5,7 +5,6 @@ const {  getid,createUser,registerUsers, otpLogin, startRoute, verifyOtp, delete
 
 //starter route
 router.get('/', startRoute)
-
 //otp login
 router.post('/login',otpLogin)
 
