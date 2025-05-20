@@ -22,7 +22,8 @@ const userSchema = new mongoose.Schema({
     },
     age:
     {
-        type:Number
+        type:Number,
+        default:null
     },
     bloodgroup:
     {
