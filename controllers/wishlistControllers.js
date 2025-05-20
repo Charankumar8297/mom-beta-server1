@@ -68,5 +68,9 @@ const getWishlist = async (req, res) => {
 module.exports = {
   addToWishlist,
   removeFromWishlist,
+<<<<<<< HEAD
   getWishlist
+=======
+  getWishlist
+>>>>>>> 76f4e8740cad417fbfe2429302e6805f271f9d6d
 };

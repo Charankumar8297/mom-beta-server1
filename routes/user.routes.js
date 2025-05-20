@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const userAuth = require('../middlewares/userAuth')
-const { createUser,registerUsers, otpLogin, startRoute, verifyOtp, deleteUser, getUserDetails, emailOtp,updateUser,updateUserById  } = require('../controllers/user.controllers')
+const {  getid,createUser,registerUsers, otpLogin, startRoute, verifyOtp, deleteUser, getUserDetails, emailOtp,updateUser,updateUserById  } = require('../controllers/user.controllers')
 
 //starter route
-router.get('/all', startRoute)
-
+router.get('/', startRoute)
 //otp login
 router.post('/login',otpLogin)
 
@@ -26,9 +25,11 @@ router.post('/email-otp', emailOtp )
 
 router.put('/updat/:id',updateUser)
 
-router.put('/user/update/:id', updateUserById);
+ router.put('/user/update/:id', updateUserById);
 router.post('/post',createUser)
 router.put('/updateAddress' , userAuth, )
+
+router.get('/getbyid/:id', getid)
 
 
 
