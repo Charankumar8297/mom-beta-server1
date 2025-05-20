@@ -49,6 +49,7 @@ app.use('/api/suggestions', require("./routes/suggestionRoutes"))
 app.use('/api/medicines' , medicineRoutes)
 app.use('/api/medicine', medicineRoutes);
 app.use('/api', Active )
+app.use('/api/notification',require("./routes/notification.routes"))
 
 
 
