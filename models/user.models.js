@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     email:
     {
         type:String,
+        default: null,
     },
     age:
     {
@@ -26,7 +27,8 @@ const userSchema = new mongoose.Schema({
     bloodgroup:
     {
 
-        type:String
+        type:String,
+        default:null,
     },
     isAdmin:
     {
