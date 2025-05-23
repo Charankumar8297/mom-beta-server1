@@ -1,5 +1,6 @@
 const express = require('express');
  const router = express.Router();
+ const deliveryBoyAuth = require('../middlewares/deliveryBoyAuth')
   const deliveryBoyController = require('../controllers/deliveryBoyController');
 
 router.post('/add-delivery', deliveryBoyController.createDeliveryBoy);
