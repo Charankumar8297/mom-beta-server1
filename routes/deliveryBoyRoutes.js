@@ -10,7 +10,7 @@ router.post('/login',deliveryBoyController.otpLogin)
 router.post('/verify-otp', deliveryBoyController.verifyOtp)
 router.get('/alldelivery', deliveryBoyController.getAllDeliveryBoys);
 router.get('/deliveryboy', deliveryBoyAuth, deliveryBoyController.getDeliveryBoyById);
-router.put('/update/:id', deliveryBoyAuth,deliveryBoyController.updateDeliveryBoy);
+router.put('/update', deliveryBoyAuth,deliveryBoyController.updateDeliveryBoy);
 router.delete('/delete/:id', deliveryBoyController.deleteDeliveryBoy);
 
 
