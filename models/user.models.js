@@ -36,6 +36,8 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    
+    
     isRegistered:{
         type: Boolean,
         default: false

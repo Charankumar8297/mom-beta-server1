@@ -36,6 +36,7 @@ const EarningSchema = new mongoose.Schema({
     bonus: { type: Number, default: 0 },
     deduction: { type: Number, default: 0 },
     total_earning: { type: Number, default: 20 }
+    
   }]
 }, { timestamps: true });
 

@@ -48,28 +48,9 @@ exports.createOrder = async (req, res) => {
 
     await newOrder.save();
 
-    // ✅ Assign delivery boy if available
-    const availableBoys = await DeliveryBoy.find({ isAvailable: 'yes' });
-
-    if (availableBoys.length > 0) {
-      const deliveryBoy = availableBoys[0];
-      newOrder.deliveryboy_id = deliveryBoy._id;
-      await newOrder.save();
-
-      deliveryBoy.isAvailable = 'no';
-      await deliveryBoy.save();
-
-      return res.status(201).json({
-        success: true,
-        message: 'Order confirmed and delivery boy assigned',
-        order: newOrder,
-        deliveryBoy,
-      });
-    }
-
     return res.status(201).json({
       success: true,
-      message: 'Order confirmed. No delivery boy available',
+      message: 'Order created successfully.',
       order: newOrder,
     });
 
@@ -80,40 +61,7 @@ exports.createOrder = async (req, res) => {
 };
 
 
-
 // Manually assign delivery boy to an order
-exports.assignOrder = async (req, res) => {
-  try {
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-
-    if (order.deliveryboy_id) {
-      return res.status(400).json({ success: false, message: 'Delivery boy already assigned' });
-    }
-
-    const availableBoys = await DeliveryBoy.find({ isAvailable: 'yes' });
-
-    if (availableBoys.length === 0) {
-      return res.status(400).json({ success: false, message: 'No available delivery boys' });
-    }
-
-    const deliveryBoy = availableBoys[0];
-    order.deliveryboy_id = deliveryBoy._id;
-    await order.save();
-
-    deliveryBoy.isAvailable = 'no';
-    await deliveryBoy.save();
-
-    res.status(200).json({
-      success: true,
-      message: 'Delivery boy manually assigned.',
-      order,
-      deliveryBoy,
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
 
 // Get all orders
 exports.getAllOrders = async (req, res) => {

@@ -26,7 +26,6 @@ router.get('/allorders', getAllOrders);
 router.get('/orderbyid/:id' , userAuth , getOrderById);
 
 
-router.post('/:id/assign', assignOrder);
 
 
 router.patch('/:id/status', updateOrderStatus);

@@ -1,12 +1,17 @@
 const express = require('express');
-const router = express.Router();
-const deliveryBoyController = require('../controllers/deliveryBoyController');
+ const router = express.Router();
+  const deliveryBoyController = require('../controllers/deliveryBoyController');
 
 router.post('/add-delivery', deliveryBoyController.createDeliveryBoy);
+//otp login
+router.post('/login',deliveryBoyController.otpLogin)
+//verify otp
+router.post('/verify-otp', deliveryBoyController.verifyOtp)
 router.get('/alldelivery', deliveryBoyController.getAllDeliveryBoys);
-router.get('/:id', deliveryBoyController.getDeliveryBoyById);
-router.put('/:id', deliveryBoyController.updateDeliveryBoy);
-router.delete('/:id', deliveryBoyController.deleteDeliveryBoy);
-router.post('/login',deliveryBoyController.login)
+router.get('/deliveryboy', deliveryBoyAuth, deliveryBoyController.getDeliveryBoyById);
+router.put('/update/:id', deliveryBoyAuth,deliveryBoyController.updateDeliveryBoy);
+router.delete('/delete/:id', deliveryBoyController.deleteDeliveryBoy);
 
-module.exports = router;
+
+
+module.exports = router;
