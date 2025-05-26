@@ -1,46 +1,59 @@
 const mongoose = require('mongoose');
 
 const deliveryBoySchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
     trim: true,
     required: true,
   },
-  age: {
-    type: Number,
-  },
-  email: {
+  lastName: {
     type: String,
-    unique: true,
-    lowercase: true,
+    trim: true,
+    required: true,
   },
-  phoneNumber: {
+  mobileNumber: {
     type: String,
+    required: true,
   },
   vehicleType: {
     type: String,
   },
-  vehicleNumber: {
+  AadharNumber: {
     type: String,
+    unique: true,
+    sparse: true,
   },
-  available: {
+  pancardNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  storeId: {
+    type: Number,
+    required: true,
+  },
+  drivingLicense: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  email: {
+    type: String,
+    required: false,  // optional email
+    trim: true,
+    lowercase: true,
+  },
+  isRegistered: {
     type: Boolean,
-    default: true, // Must be boolean for assignment logic to work
+    default: false,
   },
   status: {
     type: String,
     enum: ['Online', 'Offline', 'Busy'],
     default: 'Online',
-  },
-  location: {
-    type: String,
-  },
-  rating: {
-    type: Number,
-    default: 0,
   }
 }, {
-  timestamps: true 
+  timestamps: true,
 });
 
 module.exports = mongoose.model('DeliveryBoy', deliveryBoySchema);
