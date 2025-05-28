@@ -2,10 +2,13 @@ const Earnings = require("../models/Earning");
 // 8473847598844ioerhjhfkjhfdjhssjd
 const createEarning = async (req, res) => {
   try {
-    const { agentId } = req.params
+    const  agentId = req.deliveryBoyId
+    
     const { orderId, base_earning, bonus, deduction, ETA, total_earning, EarningStatus } = req.body;
     const findEarning = await Earnings.findOne({ deliveryId: agentId });
+    console.log('Agent ID:',findEarning);
     if (!findEarning) {
+      console.log('Creating new earning for agent:', agentId);
       const newEarning = new Earnings({
         deliveryId: agentId,
         orders: [{
@@ -47,7 +50,8 @@ const createEarning = async (req, res) => {
 
 const getEarningByAgentId = async (req, res) => {
   try {
-    const { agentId } = req.params;
+    const  agentId  = req.deliveryBoyId;
+    console.log("this is from route", agentId)
     const earning = await Earnings.findOne({ deliveryId: agentId });
     if (!earning) {
       return res.status(404).json({ message: 'Earning not found for this agent' });
@@ -70,7 +74,6 @@ const getAllEarnings = async (req, res) => {
   } catch (error) {
     console.error('Error fetching all earnings:', error);
     res.status(500).json({ message: 'Internal server error' });
-
   }
 }
 
@@ -78,7 +81,8 @@ const getAllEarnings = async (req, res) => {
 const getPendingByAgentId = async (req, res) => {
   const { status } = req.params
   try {
-    const agentId = "8473847598844ioerhjhfkjhfdjhssjd"
+    const agentId = req.deliveryBoyId
+    console.log("this is from route", agentId)
     const earnings = await Earnings.find({ deliveryId: agentId, 'orders.EarningStatus': status });
 
     if (!earnings || earnings.length === 0) {
@@ -97,7 +101,7 @@ const getPendingByAgentId = async (req, res) => {
 
 const completedEarningsByAgentId = async (req, res) => {
 
-  const agentId = "8473847598844ioerhjhfkjhfdjhssjd"; // Replace with actual agent ID if needed
+  const agentId = req.deliveryBoyId; // Replace with actual agent ID if needed
   try {
 
     const earning = await Earnings.find({ deliveryId: agentId, 'orders.EarningStatus': 'completed' });
@@ -121,7 +125,8 @@ const completedEarningsByAgentId = async (req, res) => {
 
 
 const dateRangeEarningsByAgentId = async (req, res) => {
-  const agentId = "8473847598844ioerhjhfkjhfdjhssjd"; // Replace with actual agent ID if needed
+  const agentId = req.deliveryBoyId // Replace with actual agent ID if needed
+  console.log("this is from route", agentId)
   try {
     const [startDate, endDate] = req.params.date.split(',').map(date => new Date(date.trim()));
     endDate.setHours(23, 59, 59, 999); // Set end date to the end of the day
@@ -148,7 +153,7 @@ const dateRangeEarningsByAgentId = async (req, res) => {
 
     const earnings = findEarning.orders.filter(order => {
       const orderDate = new Date(order.createdAt);
-      return orderDate >= startDate && orderDate <= endDate && order.EarningStatus === 'completed';
+      return orderDate >= startDate && orderDate <= endDate && order.EarningStatus === 'pending';
     });
 
     const completedEarning = findEarning.orders.reduce((acc, order) => {
@@ -168,7 +173,7 @@ const dateRangeEarningsByAgentId = async (req, res) => {
 
 const updateEarningById = async (req, res) => {
   try {
-    const agentId = "8473847598844ioerhjhfkjhfdjhssjd"; // Replace with actual agent ID if needed
+    const agentId = req.deliveryBoyId // Replace with actual agent ID if needed
     const update = await Earnings.updateOne(
   { deliveryId: agentId },
   {
@@ -178,7 +183,7 @@ const updateEarningById = async (req, res) => {
   }
 );
     console.log(update)
-    // res.status(200).json(update)
+    res.status(200).json({ message: 'Earning updated successfully', update });
   }
   catch (error) {
     console.error('Error updating earning by id:', error);
