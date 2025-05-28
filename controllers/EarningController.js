@@ -1,143 +1,191 @@
-
-const Earning = require('../models/Earning')
-
+const Earnings = require("../models/Earning");
+// 8473847598844ioerhjhfkjhfdjhssjd
 const createEarning = async (req, res) => {
   try {
-    const earning = new Earning(req.body);
-    await earning.save();
-    res.status(201).json({ message: 'Earning record created', earning });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+    const { agentId } = req.params
+    const { orderId, base_earning, bonus, deduction, ETA, total_earning, EarningStatus } = req.body;
+    const findEarning = await Earnings.findOne({ deliveryId: agentId });
+    if (!findEarning) {
+      const newEarning = new Earnings({
+        deliveryId: agentId,
+        orders: [{
+          order_id: orderId,
+          base_earning: base_earning || 20,
+          bonus: bonus || 0,
+          deduction: deduction || 0,
+          total_earning: total_earning || 20,
+          ETA: ETA || 0,
+          EarningStatus: EarningStatus || 'pending'
+        }]
+      });
+      await newEarning.save();
+      return res.status(201).json({ message: 'Earning created successfully', earning: newEarning });
 
-const getAllEarnings = async (req, res) => {
-  try {
-    const earnings = await Earning.find();
-    res.status(200).json(earnings);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    }
+    const newOrder = {
+      order_id: orderId,
+      base_earning: base_earning || 20,
+      bonus: bonus || 0,
+      deduction: deduction || 0,
+      total_earning: total_earning || 20,
+      ETA: ETA || 0,
+      EarningStatus: EarningStatus || 'pending'
+    }
+
+    findEarning.orders.push(newOrder);
+    findEarning.total_earning += newOrder.total_earning;
+    await findEarning.save();
+
+    return res.status(200).json({ message: 'Earning updated successfully', earning: findEarning }); tt
+
+  } catch (error) {
+    console.error('Error creating earning:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
-};
+}
+
 
 const getEarningByAgentId = async (req, res) => {
   try {
-    const earning = await Earning.findOne({ delivery_agent_id: req.params.id });
+    const { agentId } = req.params;
+    const earning = await Earnings.findOne({ deliveryId: agentId });
     if (!earning) {
-      return res.status(404).json({ message: 'Earning record not found' });
+      return res.status(404).json({ message: 'Earning not found for this agent' });
     }
-    res.status(200).json(earning);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(200).json({ earning });
+  } catch (e) {
+    console.error('Error fetching earning by agent id:', e);
+    res.status(500).json({ message: 'Internal server error' });
   }
-};
+}
 
-const updateEarning = async (req, res) => {
+
+const getAllEarnings = async (req, res) => {
   try {
-    const updatedEarning = await Earning.findByIdAndUpdate(req.params.id, req.body, {
-      new: true
-    });
-    if (!updatedEarning) {
-      return res.status(404).json({ message: 'Earning record not found' });
+    const earnings = await Earnings.find()
+    if (!earnings || earnings.length === 0) {
+      return res.status(404).json({ message: 'No earnings found' });
     }
-    res.status(200).json({ message: 'Earning record updated', updatedEarning });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
+    res.status(200).json({ earnings })
+  } catch (error) {
+    console.error('Error fetching all earnings:', error);
+    res.status(500).json({ message: 'Internal server error' });
 
-const addOrderEarning = async (req, res) => {
+  }
+}
+
+
+const getPendingByAgentId = async (req, res) => {
+  const { status } = req.params
   try {
-    const { delivery_agent_id } = req.params;
-    const { order_id, base_earning = 20, bonus = 0, deduction = 0 } = req.body;
+    const agentId = "8473847598844ioerhjhfkjhfdjhssjd"
+    const earnings = await Earnings.find({ deliveryId: agentId, 'orders.EarningStatus': status });
 
-    const earning = await Earning.findOne({ delivery_agent_id });
-
-    if (!earning) {
-      return res.status(404).json({ message: 'Earning record not found' });
+    if (!earnings || earnings.length === 0) {
+      return res.status(404).json({ message: `No ${status} earnings found for this agent` });
     }
-
-    const total_earning = base_earning + bonus - deduction;
-
-    earning.current_balance += total_earning;
-    earning.total_earned += total_earning;
-    earning.total_orders += 1;
-
-    earning.order_earnings.push({
-      order_id,
-      date: new Date(),
-      base_earning,
-      bonus,
-      deduction,
-      total_earning
-    });
-
-    await earning.save();
-
-    res.status(200).json({ message: 'Order earning added successfully', earning });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+    const pendingEarnings = earnings.map(earning => ({
+      deliveryId: earning.deliveryId,
+      orders: earning.orders.filter(order => order.EarningStatus === status)
+    }));
+    return res.status(200).json({ pendingEarnings });
+  } catch (error) {
+    console.error('Error fetching pending earnings by agent id:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
-};
+}
 
-// Automatically update earning after delivery
-const updateEarningAfterDelivery = async (req, res) => {
+const completedEarningsByAgentId = async (req, res) => {
+
+  const agentId = "8473847598844ioerhjhfkjhfdjhssjd"; // Replace with actual agent ID if needed
   try {
-    const { order_id } = req.params;
 
-    const order = await Order.findOne({ _id: order_id });
-
-    if (!order) {
-      return res.status(404).json({ message: 'Order not found' });
+    const earning = await Earnings.find({ deliveryId: agentId, 'orders.EarningStatus': 'completed' });
+    if (!earning || earning.length === 0) {
+      return res.status(404).json({ message: 'No completed earnings found for this agent' });
     }
 
-    if (order.status === 'delivered') {
-      return res.status(400).json({ message: 'Earnings have already been updated for this delivered order.' });
-    }
+    const completedEarnings = earning.map(earn => ({
+      deliveryId: earn.deliveryId,
+      orders: earn.orders.filter(order => order.EarningStatus === 'completed')
+    })
+    );
 
-    order.status = 'delivered';
-    await order.save();
+    res.status(200).json({ earnings: completedEarnings });
 
-    const earning = await Earning.findOne({ delivery_agent_id: order.deliveryboy_id });
-
-    if (!earning) {
-      return res.status(404).json({ message: 'Earnings record not found for this delivery boy' });
-    }
-
-    const orderEarning = 20;
-    const bonus = 0;
-    const deduction = 0;
-    const totalEarning = orderEarning + bonus - deduction;
-
-    earning.current_balance += totalEarning;
-    earning.total_earned += totalEarning;
-    earning.total_orders += 1;
-
-    earning.order_earnings.push({
-      order_id: order._id,
-      date: new Date(),
-      base_earning: orderEarning,
-      bonus,
-      deduction,
-      total_earning: totalEarning
-    });
-
-    await earning.save();
-
-    res.status(200).json({
-      message: 'Earnings updated successfully for this order.',
-      earning
-    });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
+  } catch (error) {
+    console.error('Error fetching completed earnings by agent id:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
-};
+}
 
-module.exports = {
-  createEarning,
-  getAllEarnings,
-  getEarningByAgentId,
-  updateEarning,
-  addOrderEarning,
-  updateEarningAfterDelivery
-};
+
+const dateRangeEarningsByAgentId = async (req, res) => {
+  const agentId = "8473847598844ioerhjhfkjhfdjhssjd"; // Replace with actual agent ID if needed
+  try {
+    const [startDate, endDate] = req.params.date.split(',').map(date => new Date(date.trim()));
+    endDate.setHours(23, 59, 59, 999); // Set end date to the end of the day
+    const findEarning = await Earnings.findOne({
+      deliveryId: agentId,
+      orders: {
+        $elemMatch: {
+          createdAt: { $gte: startDate, $lte: endDate },
+        }
+      }
+    });
+    console.log(findEarning)
+    if (!findEarning) {
+      return res.status(404).json({ message: 'Earning not found for this agent' });
+    }
+
+    const totalEarnings = findEarning.orders.reduce((acc, order) => {
+      const orderDate = new Date(order.createdAt);
+      if (orderDate >= startDate && orderDate <= endDate) {
+        return acc + order.total_earning;
+      }
+      return acc;
+    }, 0);
+
+    const earnings = findEarning.orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate >= startDate && orderDate <= endDate && order.EarningStatus === 'completed';
+    });
+
+    const completedEarning = findEarning.orders.reduce((acc, order) => {
+      const orderDate = new Date(order.createdAt);
+      if (orderDate >= startDate && orderDate <= endDate && order.EarningStatus === 'completed') {
+        return acc + order.total_earning;
+      }
+      return acc;
+    }, 0);
+    res.status(200).json({ earnings: earnings, completedEarning , totalEarnings });
+
+  } catch (error) {
+    console.error('Error fetching earnings by date range:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+const updateEarningById = async (req, res) => {
+  try {
+    const agentId = "8473847598844ioerhjhfkjhfdjhssjd"; // Replace with actual agent ID if needed
+    const update = await Earnings.updateOne(
+  { deliveryId: agentId },
+  {
+    $set: {
+      "orders.$[].EarningStatus": "completed",
+    }
+  }
+);
+    console.log(update)
+    // res.status(200).json(update)
+  }
+  catch (error) {
+    console.error('Error updating earning by id:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
+
+
+module.exports = { createEarning, getEarningByAgentId, getAllEarnings, getPendingByAgentId, completedEarningsByAgentId, dateRangeEarningsByAgentId, updateEarningById };

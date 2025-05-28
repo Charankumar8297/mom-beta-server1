@@ -15,6 +15,8 @@ const wishlist = require('./routes/wishlistRoutes')
 
 
 const port = process.env.PORT || 3001
+const sec= process.env.JWT_SECRET
+console.log(`this ${sec}`)
 
 connectDb()
 const app = express()
@@ -49,10 +51,10 @@ app.use('/api/suggestions', require("./routes/suggestionRoutes"))
 app.use('/api/medicines' , medicineRoutes)
 app.use('/api/medicine', medicineRoutes);
 app.use('/api', Active )
-app.use('/api/notification',require("./routes/notification.routes"))
 
 
 
 app.listen(port , ()=>{
     console.log(`app is listening at http://localhost:${port}`)
+    console.log(`this${sec}`)
 })

@@ -1,131 +1,95 @@
 const DeliveryBoy = require('../models/DeliveryBoy');
 const jwt = require('jsonwebtoken');
 const twilio = require('twilio');
+const nodemailer = require("nodemailer");
+require('dotenv').config();
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const client = new twilio(accountSid, authToken);
+    const accountSid = process.env.TWILIO_ACCOUNT_SID;
+    const authToken = process.env.TWILIO_AUTH_TOKEN;
+    // const client = new twilio(accountSid, authToken); 
+    const client = require('twilio')(accountSid, authToken);
 
-// Create a new DeliveryBoy manually
-const createDeliveryBoy = async (req, res) => {
-  try {
+
+
+  // Create a new user manually (optional route)
+  const createDeliveryBoy = async (req, res) => {
     const {
-      firstName,
-      lastName,
-      mobileNumber,
-      vehicleType,
-      AadharNumber,
-      pancardNumber,
-      storeId,
-      drivingLicense,
-      email,
-      isRegistered,
-      status,
-    } = req.body;
+        name,
+        mobileNumber,
+          vehicleType,
+          AadharNumber,
+         pancardNumber,
+          storeId,
+           drivingLicense,
+           status,
+      isRegistered} = req.body;
 
-    // Basic validation example
-    if (!firstName || !lastName || !mobileNumber || !storeId) {
-      return res.status(400).json({ message: 'Required fields missing' });
+    try {
+        const existingDeliveryBoy = await  DeliveryBoy.findOne({ mobileNumber });
+        if (existingDeliveryBoy) {
+        return res.status(400).json({ message: 'User already exists' });
+        }
+
+        const newDeliverBoy = new DeliveryBoy ({
+         name,
+         mobileNumber,          
+         vehicleType,
+          AadharNumber,
+         pancardNumber,
+          storeId,
+           drivingLicense,
+           status,
+        isRegistered: isRegistered || false
+        });
+
+        await newDeliverBoy.save();
+        return res.status(201).json({ message: 'deliveryboy created successfully', deliveryBoy: newDeliverBoy });
+    } catch (error) {
+        console.error('Error creating deliveryboy:', error);
+        return res.status(500).json({ message: 'Internal server error' });
     }
+    };
 
-    const deliveryBoy = new DeliveryBoy({
-      firstName,
-      lastName,
-      mobileNumber,
-      vehicleType,
-      AadharNumber,
-      pancardNumber,
-      storeId,
-      drivingLicense,
-      email,          // optional
-      isRegistered,
-      status,
-    });
 
-    await deliveryBoy.save();
-
-    return res.status(201).json({ message: 'Delivery boy created', deliveryBoy });
-  } catch (error) {
-    console.error('Error creating delivery boy:', error);
-
-    // Handle duplicate key error nicely
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message: 'Duplicate field value entered',
-        error: error.keyValue,
-      });
-    }
-
-    return res.status(500).json({ message: 'Server error' });
-  }
-};
-
-// OTP login (register if not exists)
-const otpLogin = async (req, res) => {
-  const { phoneNumber, name } = req.body;
-
-  try {
-    let deliveryBoy = await DeliveryBoy.findOne({ mobileNumber: phoneNumber });
-
-    if (!deliveryBoy) {
-      deliveryBoy = new DeliveryBoy({ mobileNumber: phoneNumber, firstName: name || '', lastName: '' });
-      await deliveryBoy.save();
-      console.log('New delivery boy created:', deliveryBoy);
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000);
-    console.log(`OTP for ${phoneNumber}: ${otp}`);
-
-    await client.messages.create({
-      body: `Your OTP is ${otp}`,
-      from: process.env.TWILIO_PHONE_NUMBER,
-      to: `+91${phoneNumber}`,
-    });
-
-    req.session.otp = otp;
-    req.session.deliveryBoyId = deliveryBoy._id;
-
-    return res.status(200).json({
-      message: 'OTP sent successfully',
-      deliveryBoyId: deliveryBoy._id,
-    });
-  } catch (error) {
-    console.error('Error logging in user:', error);
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-// OTP verification
-const verifyOtp = async (req, res) => {
-  const { otp, phoneNumber } = req.body;
-
-  try {
-    if (Number(req.session.otp) === Number(otp)) {
-      const deliveryBoy = await DeliveryBoy.findOne({ mobileNumber: phoneNumber });
-      if (!deliveryBoy) {
-        return res.status(404).json({ message: 'Delivery boy not found' });
+     // Register deliveryboy (update user details if not already registered)
+     const registerDeliveryBoy = async (req, res) => {
+      const { name, mobileNumber, vehicleType, AadharNumber, pancardNumber, storeId, drivingLicense, status } = req.body;
+      const deliveryBoyId = req.deliveryBoyId;
+  
+      try {
+          const deliveryBoy = await DeliveryBoy.findById(deliveryBoyId);
+          if (!deliveryBoy) {
+              return res.status(404).json({ message: 'Delivery boy not found' });
+          }
+  
+          if (deliveryBoy.isRegistered) {
+              return res.status(400).json({ message: 'User already registered' });
+          }
+  
+          await DeliveryBoy.updateOne(
+              { _id: deliveryBoyId },
+              {
+                  name,
+                  mobileNumber,
+                  vehicleType,
+                  AadharNumber,
+                  pancardNumber,
+                  storeId,
+                  drivingLicense,
+                  status,
+                  isRegistered: true
+              }
+          );
+  
+          return res.status(201).json({ message: 'Delivery boy registered successfully', deliveryBoyId });
+      } catch (error) {
+          console.error('Error registering delivery boy:', error);
+          return res.status(500).json({ message: 'Internal server error' });
       }
+  };
+  
 
-      const token = jwt.sign({ deliveryBoyId: deliveryBoy._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-      // Clear session OTP after verification
-      req.session.otp = null;
-      req.session.deliveryBoyId = deliveryBoy._id;
-      req.session.phoneNumber = deliveryBoy.mobileNumber;
-
-      const isExist = !!(deliveryBoy.firstName || deliveryBoy.lastName);
-
-      return res.status(200).json({ message: 'OTP verified successfully', token, isExist });
-    } else {
-      return res.status(400).json({ message: 'Invalid OTP' });
-    }
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-    return res.status(500).json({ message: 'Internal server error' });
-  }
-};
-
-// Get all delivery boys
+    
 const getAllDeliveryBoys = async (req, res) => {
   try {
     const deliveryBoys = await DeliveryBoy.find();
@@ -135,10 +99,11 @@ const getAllDeliveryBoys = async (req, res) => {
   }
 };
 
-// Get delivery boy by ID
+
 const getDeliveryBoyById = async (req, res) => {
+  const deliveryBoyId = req.deliveryBoyId;
   try {
-    const deliveryBoy = await DeliveryBoy.findById(req.params.id);
+    const deliveryBoy = await DeliveryBoy.findById(deliveryBoyId);
     if (!deliveryBoy) {
       return res.status(404).json({ message: 'Delivery boy not found' });
     }
@@ -148,10 +113,75 @@ const getDeliveryBoyById = async (req, res) => {
   }
 };
 
-// Update delivery boy
+const otpLogin = async (req, res) => {
+    const { mobileNumber } = req.body;
+
+    try {
+        let deliveryBoy = await DeliveryBoy.findOne({ mobileNumber });
+
+        if (!deliveryBoy) {
+            deliveryBoy = new DeliveryBoy({ mobileNumber });
+            await deliveryBoy.save();
+            console.log('DeliveryBoy created:', deliveryBoy);
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000);
+        console.log(`OTP for ${mobileNumber}: ${otp}`);
+
+        const message = await client.messages.create({
+            body: `Your OTP is ${otp}`,
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: `+91${mobileNumber}`
+        });
+
+        console.log('Message sent:', message.sid);
+        req.session.otp = otp;
+        req.session.deliveryBoyId = deliveryBoy._id;
+
+        return res.status(200).json({ message: 'OTP sent successfully', deliveryBoyId: deliveryBoy._id });
+    } catch (error) {
+        console.error('Error logging in user:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
+   const verifyOtp = async (req, res) => {
+    const { otp, mobileNumber} = req.body;
+
+    try {
+        if (Number(req.session.otp) === Number(otp)) {
+            const deliveryBoy = await DeliveryBoy.findOne({   mobileNumber });
+            if (!deliveryBoy) {
+                return res.status(404).json({ message: 'Deliveryboy not found' });
+            }
+
+            const token = jwt.sign({ deliveryBoyId: deliveryBoy._id }, process.env.JWT_SECRET);
+
+            req.session.otp = null;
+            req.session.deliveryBoyId = deliveryBoy._id;
+            req.session.mobileNumber = deliveryBoy. mobileNumber;
+
+            const isExist = !!(deliveryBoy.name);
+            console.log('OTP verified successfully for:', deliveryBoy.mobileNumber);
+            console.log('Token generated:', token);
+
+
+            return res.status(200).json({ message: 'OTP verified successfully', token, isExist });
+        } else {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+    } catch (error) {
+        console.error('Error verifying OTP:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+
 const updateDeliveryBoy = async (req, res) => {
+  const deliveryBoyId = req.deliveryBoyId;
   try {
-    const deliveryBoy = await DeliveryBoy.findByIdAndUpdate(req.params.id, req.body, {
+    const deliveryBoy = await DeliveryBoy.findByIdAndUpdate(deliveryBoyId, req.body, {
       new: true,
       runValidators: true
     });
@@ -164,10 +194,11 @@ const updateDeliveryBoy = async (req, res) => {
   }
 };
 
-// Delete delivery boy
+
 const deleteDeliveryBoy = async (req, res) => {
+  const deliveryBoyId = req.deliveryBoyId;
   try {
-    const deliveryBoy = await DeliveryBoy.findByIdAndDelete(req.params.id);
+    const deliveryBoy = await DeliveryBoy.findByIdAndDelete(deliveryBoyId);
     if (!deliveryBoy) {
       return res.status(404).json({ message: 'Delivery boy not found' });
     }
@@ -177,12 +208,15 @@ const deleteDeliveryBoy = async (req, res) => {
   }
 };
 
-module.exports = {
-  createDeliveryBoy,
-  otpLogin,
-  verifyOtp,
-  getAllDeliveryBoys,
-  getDeliveryBoyById,
-  updateDeliveryBoy,
-  deleteDeliveryBoy
-};
+    
+
+    module.exports = {
+      createDeliveryBoy,
+    getAllDeliveryBoys,
+    getDeliveryBoyById,
+    registerDeliveryBoy,
+    otpLogin,
+    verifyOtp,
+    updateDeliveryBoy,
+    deleteDeliveryBoy
+    };

@@ -1,6 +1,6 @@
 const express = require('express');
  const router = express.Router();
- const deliveryBoyAuth = require('../middlewares/deliveryBoyAuth')
+ const deliveryBoyAuth = require('../middlewares/deliveryBoyAuth');
   const deliveryBoyController = require('../controllers/deliveryBoyController');
 
 router.post('/add-delivery', deliveryBoyController.createDeliveryBoy);
@@ -11,8 +11,8 @@ router.post('/verify-otp', deliveryBoyController.verifyOtp)
 router.get('/alldelivery', deliveryBoyController.getAllDeliveryBoys);
 router.get('/deliveryboy', deliveryBoyAuth, deliveryBoyController.getDeliveryBoyById);
 router.put('/update', deliveryBoyAuth,deliveryBoyController.updateDeliveryBoy);
-router.delete('/delete/:id', deliveryBoyController.deleteDeliveryBoy);
+router.delete('/delete', deliveryBoyAuth, deliveryBoyController.deleteDeliveryBoy);
+router.post('/register', deliveryBoyAuth, deliveryBoyController.registerDeliveryBoy);
 
 
-
-module.exports = router;
+module.exports = router;
