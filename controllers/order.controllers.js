@@ -5,7 +5,6 @@ const DeliveryAssessment = require('../models/DeliveryAssessment');
 const Medicine = require('../models/medicines/Productdetail.model.')
 const mongoose = require('mongoose');
 
-
 // Create Order
 exports.createOrder = async (req, res) => {
   const user_id = req.userId;

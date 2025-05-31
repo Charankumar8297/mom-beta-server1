@@ -124,6 +124,8 @@ const completedEarningsByAgentId = async (req, res) => {
 }
 
 
+
+
 const dateRangeEarningsByAgentId = async (req, res) => {
   const agentId = req.deliveryBoyId // Replace with actual agent ID if needed
   console.log("this is from route", agentId)
@@ -163,7 +165,7 @@ const dateRangeEarningsByAgentId = async (req, res) => {
       }
       return acc;
     }, 0);
-    res.status(200).json({ earnings: earnings, completedEarning , totalEarnings });
+    res.status(200).json({ earnings:findEarning, completedEarning , totalEarnings });
 
   } catch (error) {
     console.error('Error fetching earnings by date range:', error);
