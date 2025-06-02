@@ -59,6 +59,16 @@ exports.createOrder = async (req, res) => {
   }
 };
 
+exports.getActiveOrders = async (req , res)=>{
+  const userId = req.userId
+  try{
+    const ActiveOrders = await Order.find({user_id:userId , isActive:true})
+    res.status(200).send({data:ActiveOrders})
+  }catch(e){
+    res.status(500).send({msg:"Internal server error" , e})
+  }
+}
+
 
 // Manually assign delivery boy to an order
 
@@ -320,6 +330,7 @@ exports.delivered = async (req, res) => {
 
    
     order.status = 'delivered';
+    order.isActive = false
     await order.save();
 
     

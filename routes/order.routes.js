@@ -13,16 +13,19 @@ const {
    deleteOrdersByUserId,
    deleteAllOrders,
    acceptOrder,
-   delivered
+   delivered,
+   getActiveOrders
    
 
 
 } = require('../controllers/order.controllers');
 const userAuth = require('../middlewares/userAuth');
 const deliveryBoyAuth = require('../middlewares/deliveryBoyAuth');
+const { getActiveOrdersByUser } = require('../controllers/ActiveOrderController');
 
 
 router.post('/add-order', userAuth, createOrder);
+router.get("/activeOrder" , userAuth  , getActiveOrders)
 
 
 router.get('/allorders', getAllOrders);
