@@ -24,8 +24,14 @@ const createDonar = async (req, res) => {
         await donar.save();
         res.status(201).json({ message: 'Donor registered successfully!', donar });
     } catch (error) {
+        if(error.code === 11000 && error.keypattern.phone) {
+            return res.status(400).json({ message: 'Phone number already exists.' });
+        }
+        else{
+            
         console.error("Error creating donor:", error);
         res.status(500).json({ message: 'Server Error', error: error.message });
+        }
     }
 };
 
@@ -87,6 +93,10 @@ const getDonar = async (req, res) => {
 };
 
 
+
+
+
+
 const deleteDonar = async (req, res) => {
     const { id } = req.params;
     console.log("Deleting Donor with ID:", id);
@@ -102,4 +112,4 @@ const deleteDonar = async (req, res) => {
     }
 };
 
-module.exports = { createDonar, editDonar, getDonar, deleteDonar };
+module.exports = { createDonar, editDonar, getDonar, deleteDonar };
