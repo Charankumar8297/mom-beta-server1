@@ -195,6 +195,55 @@ const updateDeliveryBoy = async (req, res) => {
 };
 
 
+const updateLoginHours = async (req, res) => {
+  const { status } = req.body;
+  const deliveryBoyId = req.deliveryBoyId;
+
+  try {
+    const deliveryBoy = await DeliveryBoy.findById(deliveryBoyId);
+    if (!deliveryBoy) {
+      return res.status(404).json({ message: 'Delivery boy not found' });
+    }
+
+    if (status && status !== deliveryBoy.status) {
+      if (status === 'Online') {
+        const lastSession = deliveryBoy.loginSessions[deliveryBoy.loginSessions.length - 1];
+        if (!lastSession || lastSession.logoutTime) {
+          deliveryBoy.loginSessions.push({ loginTime: new Date() });
+        }
+      } else if (status === 'Offline') {
+        const lastSession = deliveryBoy.loginSessions[deliveryBoy.loginSessions.length - 1];
+        if (lastSession && !lastSession.logoutTime) {
+          const logoutTime = new Date();
+          const loginTime = new Date(lastSession.loginTime);
+          const sessionDuration = logoutTime - loginTime; 
+
+          lastSession.logoutTime = logoutTime;
+          deliveryBoy.totalOnlineTimeInMs = (deliveryBoy.totalOnlineTimeInMs || 0) + sessionDuration;
+        }
+      }
+
+      deliveryBoy.status = status;
+    }
+    Object.keys(req.body).forEach(key => {
+      if (key !== 'status') {
+        deliveryBoy[key] = req.body[key];
+      }
+    });
+
+    await deliveryBoy.save();
+
+    res.status(200).json({
+      message: 'Status and time updated successfully',
+      totalOnlineTimeInMs: deliveryBoy.totalOnlineTimeInMs
+    });
+
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
 const deleteDeliveryBoy = async (req, res) => {
   const deliveryBoyId = req.deliveryBoyId;
   try {
@@ -218,5 +267,6 @@ const deleteDeliveryBoy = async (req, res) => {
     otpLogin,
     verifyOtp,
     updateDeliveryBoy,
-    deleteDeliveryBoy
+    deleteDeliveryBoy,
+    updateLoginHours
     };
