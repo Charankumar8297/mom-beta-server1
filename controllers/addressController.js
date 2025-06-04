@@ -20,6 +20,7 @@ const createAddress = async (req, res) => {
     });
 
     await address.save();
+    User.updateOne({_id:userid} , {primaryAddress:address._id})
     res.status(201).json({ success: true, message: 'Address created', address });
 
   } catch (error) {
@@ -55,7 +56,7 @@ const makePrimaryAddress = async (req, res) => {
     address.isPrimary = true;
     await address.save();
 
-    await User.findByIdAndUpdate(userId, { primaryAddress: addressId });
+    await User.findByIdAndUpdate(userId, { primaryAddress: address });
 
     res.status(200).json({
       success: true,
