@@ -31,7 +31,7 @@ router.get("/activeOrder" , userAuth  , getActiveOrders)
 router.get('/allorders', getAllOrders);
 
 
-router.get('/orderbyid/:id' , userAuth , getOrderById);
+router.get('/orderbyid/:id' , getOrderById);
 
 
 
