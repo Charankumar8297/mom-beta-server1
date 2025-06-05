@@ -14,5 +14,5 @@ router.put('/update', deliveryBoyAuth,deliveryBoyController.updateDeliveryBoy);
 router.delete('/delete', deliveryBoyAuth, deliveryBoyController.deleteDeliveryBoy);
 router.post('/register', deliveryBoyAuth, deliveryBoyController.registerDeliveryBoy);
 
-
+router.put('/loginhours',deliveryBoyAuth,deliveryBoyController.updateLoginHours)
 module.exports = router;

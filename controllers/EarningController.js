@@ -171,6 +171,8 @@ const dateRangePayoutByAgentId = async (req, res) => {
 }
 
 
+
+
 const dateRangeEarningsByAgentId = async (req, res) => {
   const agentId = req.deliveryBoyId // Replace with actual agent ID if needed
   console.log("this is from route", agentId)

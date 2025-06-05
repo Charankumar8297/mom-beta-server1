@@ -11,6 +11,7 @@ const DeliveryAssessment = require('./routes/DeliveryAssessmentRoutes')
 const Earning = require('./routes/EarningRoutes')
 const Active = require('./routes/ActiveRoutes')
 const wishlist = require('./routes/wishlistRoutes')
+const StoreAddress = require('./routes/storeAddressRoutes')
 
 
 
@@ -22,6 +23,7 @@ connectDb()
 const app = express()
 app.use(cors())
 app.use(express.json())
+
 
 app.use(session({
     secret: 'medicine on minute',      // 🔑 used to sign the cookie
@@ -44,6 +46,7 @@ app.use("/api/report", require("./routes/report.routes"))
 app.use("/earning", Earning)
 app.use("/api", DeliveryAssessment)
 app.use("/api/wishlist", wishlist)
+app.use("/storeAddress", StoreAddress)
 
 
 app.use('/api/prescriptions' , require("./routes/prescriptionRoutes"))
