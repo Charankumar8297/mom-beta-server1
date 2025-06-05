@@ -3,11 +3,18 @@ const jwt = require("jsonwebtoken");
 
 const createDonar = async (req, res) => {
     try {
-        console.log("Request Body:", req.body); 
-
         const { name, bloodGroup, dob, phone, email, country, state, district, city, pincode, availability } = req.body;
 
-        const donar = new Donar({
+        if (!name || !bloodGroup || !dob || !phone || !email || !state || !district || !city || !pincode) {
+            return res.status(400).json({ message: 'Please fill all the details' });
+        }
+
+        const existDonor = await Donar.findOne({ phone });
+        if (existDonor) {
+            return res.status(400).json({ message: 'Phone number already exists' });
+        }
+
+        const newDonar = new Donar({
             name,
             bloodGroup,
             dob,
@@ -18,17 +25,16 @@ const createDonar = async (req, res) => {
             district,
             city,
             pincode,
-            availability
+            availability: availability || false
         });
 
-        await donar.save();
-        res.status(201).json({ message: 'Donor registered successfully!', donar });
+        await newDonar.save();
+        res.status(200).json({ message: 'Donor registered successfully' });
     } catch (error) {
         console.error("Error creating donor:", error);
-        res.status(500).json({ message: 'Server Error', error: error.message });
+        res.status(500).json({ message: 'Something went wrong' });
     }
 };
-
 const editDonar = async (req, res) => {
     try {
         const { name, bloodGroup, dob, phone, email, country, state, district, city, pincode, availability } = req.body;
@@ -85,6 +91,10 @@ const getDonar = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 };
+
+
+
+
 
 
 const deleteDonar = async (req, res) => {
