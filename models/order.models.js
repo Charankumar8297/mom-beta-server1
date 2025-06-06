@@ -12,7 +12,11 @@ const orderSchema = new mongoose.Schema({
   },
 
   ETA: { type : Number, default: 10 },
-
+  orderId: {
+    type: String,
+    unique: true,
+    required: true,
+  },
   medicines: [{
     medicine_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Medicine' },
     name:{type:String , required:true},
@@ -31,6 +35,8 @@ const orderSchema = new mongoose.Schema({
 
   isActive: { type: Boolean, default: true },
 
-}, { timestamps: true });
+
+}, 
+{ timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

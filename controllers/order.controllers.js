@@ -6,31 +6,40 @@ const Medicine = require('../models/medicines/Productdetail.model.')
 const mongoose = require('mongoose');
 
 // Create Order
+function generateOrderIdFromObjectId(objectId) {
+  const hex = objectId.toString().slice(-8);     
+  const decimal = parseInt(hex, 16);             
+  return decimal.toString().padStart(8, '0');     
+}
 exports.createOrder = async (req, res) => {
   const user_id = req.userId;
 
-  try {
-    const {
-      address_id,
-      ETA = 10,
-      medicines,
-      subtotal,
-      shippingFee = 0,
-      tax = 0,
-      discount = 0,
-      total_amount,
-      paymentMethod = 'COD',
-      isActive = true,
-    } = req.body;
+  const {
+    address_id,
+    ETA = 10,
+    medicines,
+    subtotal,
+    shippingFee = 0,
+    tax = 0,
+    discount = 0,
+    total_amount,
+    paymentMethod = 'COD',
+    isActive = true,
+  } = req.body;
 
-    if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !subtotal || !total_amount) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields or invalid medicines list.',
-      });
-    }
+  if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !subtotal || !total_amount) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required fields or invalid medicines list.',
+    });
+  }
+
+  try {
+    const tempId = new mongoose.Types.ObjectId();
+    const orderId = generateOrderIdFromObjectId(tempId);
 
     const newOrder = new Order({
+      _id: tempId,
       user_id,
       address_id,
       ETA,
@@ -42,6 +51,7 @@ exports.createOrder = async (req, res) => {
       total_amount,
       paymentMethod,
       isActive,
+      orderId,
       status: 'confirmed',
     });
 
@@ -58,12 +68,13 @@ exports.createOrder = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
-
 exports.getActiveOrders = async (req , res)=>{
   const userId = req.userId
   try{
     const ActiveOrders = await Order.find({user_id:userId , isActive:true})
-    res.status(200).send({data:ActiveOrders})
+    res.status(200).send({data:ActiveOrders,
+      count: ActiveOrders.length
+    })
   }catch(e){
     res.status(500).send({msg:"Internal server error" , e})
   }
