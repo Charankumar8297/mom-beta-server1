@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const routerController = require("../controllers/report.controllers");
+const reportController = require("../controllers/report.controllers");
 
-// post,get
-router.post('/userIDdetails', routerController.getuserId);
-router.post('/repotdetails', routerController.createreport);
-router.get('/reportdetails/get', routerController.getreport);
+
+router.post('/userIDdetails', reportController.getuserId);
+
+router.post('/reportdetails', reportController.createreport);
+
+
+router.get('/reports', reportController.getreport);
 
 module.exports = router;
