@@ -14,11 +14,13 @@ const subCategorySchema = new Schema(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Category',
+      required: false,
     },
     medicines: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Medicine',
+        required: false,
       },
     ],
   },
