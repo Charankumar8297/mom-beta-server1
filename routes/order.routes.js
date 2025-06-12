@@ -18,7 +18,6 @@ const {
    getOrderSummary,
     getOrdersGraph,
     getRevenue,
-    getHI,
     getSales,
     getTotalOrders,
     getSummary,
@@ -27,7 +26,7 @@ const {
 } = require('../controllers/order.controllers');
 const userAuth = require('../middlewares/userAuth');
 const deliveryBoyAuth = require('../middlewares/deliveryBoyAuth');
-// const {getActiveOrdersByUser} = require('../controllers/ActiveOrderController')
+const {getActiveOrdersByUser} = require('../controllers/ActiveOrderController')
 
 router.post('/add-order', userAuth, createOrder);
 
@@ -49,7 +48,6 @@ router.post('delivered/:orderId',delivered);
 router.get('/rev', getRevenue);
 router.get('/sales',getSales);
 router.get("/all",getTotalOrders)
-
 router.get('/orderrevenue',getSummary);
 router.get('/summary', getOrderSummary);
 router.get('/orders-graph', getOrdersGraph);

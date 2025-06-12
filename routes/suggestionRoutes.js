@@ -5,5 +5,4 @@ const { addSuggestion, getSuggestions, updateSuggestionStatus } = require("../co
 router.post("/add", addSuggestion);
 router.get("/sug", getSuggestions);
 router.put('/update-status/:id', updateSuggestionStatus);
-
-module.exports = router;
+module.exports = router;
