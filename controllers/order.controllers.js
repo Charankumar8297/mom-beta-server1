@@ -361,3 +361,312 @@ exports.delivered = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+
+exports.getOrderSummary = async (req, res) => {
+  try {
+    const orders = await Order.find();
+
+    const totalOrders = orders.length;
+    const activeOrders = orders.filter(order => order.isActive).length;
+
+    const totalRevenue = orders.reduce((sum, order) => {
+      return sum + (order.total_amount || 0);
+    }, 0);
+
+    const averageRevenue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    const uniqueCustomers = new Set(orders.map(order => order.user_id?.toString()));
+    const totalCustomers = uniqueCustomers.size;
+
+    const uniqueDeliveryBoys = new Set(orders.map(order => order.deliveryboy_id?.toString()).filter(Boolean));
+    const totalDelivery = uniqueDeliveryBoys.size;
+
+    res.status(200).json({
+      success: true,
+      totalOrders,
+      activeOrders,
+      totalCustomers,
+      totalDelivery,
+      totalRevenue,
+      averageRevenue,
+    });
+  } catch (error) {
+    console.error("Error in getOrderSummary:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+exports.getTotalOrders = async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      totalOrders,
+    });
+  } catch (error) {
+    console.error('Error counting total orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+
+exports.getOrdersGraph = async (req, res) => {
+  const { filter } = req.query;
+
+  try {
+    let groupFormat;
+    let labelFormat;
+    let startDate = moment().startOf('year');
+
+    switch (filter) {
+      case 'daily':
+        startDate = moment().startOf('week');
+        groupFormat = '%Y-%m-%d';
+        labelFormat = 'ddd'; 
+        break;
+      case 'weekly':
+        startDate = moment().subtract(1, 'month');
+        groupFormat = '%Y-%U'; 
+        labelFormat = 'Week W';
+        break;
+      case 'monthly':
+        startDate = moment().startOf('year');
+        groupFormat = '%Y-%m';
+        labelFormat = 'MMM'; 
+        break;
+      case 'yearly':
+      default:
+        startDate = moment().subtract(5, 'years');
+        groupFormat = '%Y';
+        labelFormat = 'YYYY'; 
+        break;
+    }
+
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate.toDate() },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: groupFormat,
+              date: '$createdAt',
+            },
+          },
+          orders: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    const formattedData = orders.map((entry) => ({
+      label: formatLabel(entry._id, filter),
+      orders: entry.orders,
+    }));
+
+    res.json({ success: true, data: formattedData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+function formatLabel(dateStr, filter) {
+  const date = moment(dateStr, filter === 'weekly' ? 'YYYY-ww' : undefined);
+  switch (filter) {
+    case 'daily':
+      return moment(dateStr).format('ddd');
+    case 'weekly':
+      return `Week ${moment(dateStr, 'YYYY-ww').week()}`;
+    case 'monthly':
+      return moment(dateStr).format('MMM');
+    case 'yearly':
+      return moment(dateStr).format('YYYY');
+    default:
+      return dateStr;
+  }
+};
+
+
+exports.getRevenue = async (req, res) => {
+  try {
+    const now = new Date();
+    const range = req.query.range || "all";
+    let match = { status: "delivered" };
+    let groupFormat;
+    let labelFormatter;
+
+    if (range === "this-month") {
+
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      match.createdAt = { $gte: startOfMonth, $lte: endOfMonth };
+
+      groupFormat = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+      labelFormatter = (label) => {
+        const date = new Date(label);
+        return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+      };
+    } else {
+
+      let oldestOrder = await Order.findOne({ status: "delivered" }).sort({ createdAt: 1 }).select("createdAt");
+      const startDate = oldestOrder?.createdAt || new Date(now.getFullYear(), 0, 1);
+      match.createdAt = { $gte: startDate, $lte: now };
+
+      const diffYears = now.getFullYear() - startDate.getFullYear();
+      if (diffYears <= 2) {
+        groupFormat = { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
+        labelFormatter = (label) => {
+          const [year, month] = label.split("-");
+          return new Date(year, month - 1).toLocaleString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+        };
+      } else if (diffYears <= 5) {
+        groupFormat = {
+          $concat: [
+            { $dateToString: { format: "%Y", date: "$createdAt" } },
+            "-Q",
+            {
+              $toString: {
+                $ceil: { $divide: [{ $month: "$createdAt" }, 3] },
+              },
+            },
+          ],
+        };
+        labelFormatter = (label) => label;
+      } else {
+        groupFormat = { $dateToString: { format: "%Y", date: "$createdAt" } };
+        labelFormatter = (label) => label;
+      }
+    }
+
+    const revenueData = await Order.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: groupFormat,
+          revenue: {
+            $sum: {
+              $subtract: ["$total_amount", { $ifNull: ["$discount", 0] }],
+            },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const formatted = revenueData.map((entry) => ({
+      label: labelFormatter(entry._id),
+      revenue: entry.revenue,
+    }));
+
+    res.status(200).json({ success: true, data: formatted });
+  } catch (error) {
+    console.error("Error fetching revenue:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+exports.getSales = async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const match = {
+      createdAt: { $gte: startOfYear, $lte: endOfMonth },
+      status: "delivered",
+    };
+
+    const salesData = await Order.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          sales: { $sum: 1 }, // count orders
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const monthlySales = Array.from({ length: now.getMonth() + 1 }, (_, i) => {
+      const found = salesData.find((m) => m._id === i + 1);
+      return {
+        month: new Date(0, i).toLocaleString("en-US", { month: "short" }),
+        sales: found ? found.sales : 0,
+      };
+    });
+
+    res.status(200).json({ success: true, data: monthlySales });
+  } catch (err) {
+    console.error("Sales data error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+//get revenue
+// exports.getHI = async (req, res) => {
+//   try {
+//     const deliveredOrders = await Order.find({ status: 'delivered' });
+//     let totalRevenue = 0;
+//     deliveredOrders.forEach(order => {
+//       if (order.total_earning !== undefined && order.total_earning !== null) {
+//         totalRevenue += order.total_earning;
+//       } else {
+//         totalRevenue += (order.total_amount || 0) - (order.discount || 0);
+//       }
+//     });
+//     res.status(200).json({ totalRevenue });
+//   } catch (error) {
+//     console.error('Error calculating total revenue:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// };
+
+
+exports.getTotalOrders = async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      totalOrders,
+    });
+  } catch (error) {
+    console.error('Error counting total orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+exports.getSummary = async (req, res) => {
+  try {
+    const orders = await Order.find();
+    const totalRevenue = orders.reduce((sum, order) => {
+      return sum + (order.total_amount || 0);
+    }, 0);
+   
+    res.status(200).json({
+      success: true,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.error("Error in getOrderSummary:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
