@@ -26,15 +26,15 @@ const donarSchema = new mongoose.Schema({
     
   },
   state: { type: String, 
-    required: true 
+
 
   },
   district: { type: String, 
-    required: true 
+
 
   },
   city: { type: String, 
-    required: true 
+ 
 
   },
   pincode: { type: String, 
@@ -42,11 +42,8 @@ const donarSchema = new mongoose.Schema({
 
   },
   availability: { type: Boolean, 
-    required: true 
 
   }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Donar', donarSchema);
-    
-   

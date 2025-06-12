@@ -34,7 +34,8 @@ router.get("/activeOrders",userAuth,getActiveOrders)
 router.get('/allorders', getAllOrders);
 
 
-router.get('/orderbyid/:id' , userAuth , getOrderById);
+router.get('/orderbyid/:id' , getOrderById);
+
 router.patch('/:id/status', updateOrderStatus);
 router.patch('/:id/active', updateOrderIsActive);
 router.delete('/delete-all-orders', deleteAllOrders);

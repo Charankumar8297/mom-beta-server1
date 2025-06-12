@@ -1,5 +1,5 @@
 const express = require("express")
-const { createEarning, getEarningByAgentId, getAllEarnings, getPendingByAgentId, completedEarningsByAgentId, dateRangeEarningsByAgentId, updateEarningById } = require("../controllers/EarningController")
+const { createEarning, getEarningByAgentId, getAllEarnings, getPendingByAgentId, completedEarningsByAgentId, dateRangePayoutByAgentId, dateRangeEarningsByAgentId, updateEarningById } = require("../controllers/EarningController")
 const { get } = require("mongoose")
 const Earnings = require("../models/Earning")
 const deliveryBoyAuth = require("../middlewares/deliveryBoyAuth")
@@ -35,6 +35,7 @@ router.get('/status/:status', deliveryBoyAuth , getPendingByAgentId)
 
 //fetch earnings by date range by agent id
 router.get('/dateRange/:date',deliveryBoyAuth ,  dateRangeEarningsByAgentId);
+router.get('/dateRangepayout/:date',deliveryBoyAuth ,  dateRangePayoutByAgentId);
 
 
 module.exports = router 
