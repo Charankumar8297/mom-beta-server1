@@ -2,36 +2,45 @@ const Order = require('../models/order.models');
 const DeliveryBoy = require('../models/DeliveryBoy');
 const Earning = require('../models/Earning');
 const DeliveryAssessment = require('../models/DeliveryAssessment');
-const Medicine = require('../models/medicines/Productdetail.model.')
+const Medicine = require('../models/medicines/Productdetail.model.');
+const moment = require('moment');
 const mongoose = require('mongoose');
 
-
 // Create Order
+function generateOrderIdFromObjectId(objectId) {
+  const hex = objectId.toString().slice(-8);     
+  const decimal = parseInt(hex, 16);             
+  return decimal.toString().padStart(8, '0');     
+}
 exports.createOrder = async (req, res) => {
   const user_id = req.userId;
 
-  try {
-    const {
-      address_id,
-      ETA = 10,
-      medicines,
-      subtotal,
-      shippingFee = 0,
-      tax = 0,
-      discount = 0,
-      total_amount,
-      paymentMethod = 'COD',
-      isActive = true,
-    } = req.body;
+  const {
+    address_id,
+    ETA = 10,
+    medicines,
+    subtotal,
+    shippingFee = 0,
+    tax = 0,
+    discount = 0,
+    total_amount,
+    paymentMethod = 'COD',
+    isActive = true,
+  } = req.body;
 
-    if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !subtotal || !total_amount) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields or invalid medicines list.',
-      });
-    }
+  if (!address_id || !Array.isArray(medicines) || medicines.length === 0 || !subtotal || !total_amount) {
+    return res.status(400).json({
+      success: false,
+      message: 'Missing required fields or invalid medicines list.',
+    });
+  }
+
+  try {
+    const tempId = new mongoose.Types.ObjectId();
+    const orderId = generateOrderIdFromObjectId(tempId);
 
     const newOrder = new Order({
+      _id: tempId,
       user_id,
       address_id,
       ETA,
@@ -43,6 +52,7 @@ exports.createOrder = async (req, res) => {
       total_amount,
       paymentMethod,
       isActive,
+      orderId,
       status: 'confirmed',
     });
 
@@ -59,6 +69,17 @@ exports.createOrder = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+exports.getActiveOrders = async (req , res)=>{
+  const userId = req.userId
+  try{
+    const ActiveOrders = await Order.find({user_id:userId , isActive:true})
+    res.status(200).send({data:ActiveOrders,
+      count: ActiveOrders.length
+    })
+  }catch(e){
+    res.status(500).send({msg:"Internal server error" , e})
+  }
+}
 
 
 // Manually assign delivery boy to an order
@@ -81,11 +102,11 @@ exports.getAllOrders = async (req, res) => {
 exports.getOrderById = async (req, res) => {
   // const userId = req.userId
   try {
-    const order = await Order.findById({_id:req.params.id })
+    const order = await Order.findById({ _id: req.params.id })
       .populate('user_id')
       .populate('address_id')
       .populate('deliveryboy_id');
-    
+
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
@@ -100,7 +121,7 @@ exports.getOrderById = async (req, res) => {
 exports.orderByDeliveryBoyId = async (req, res) => {
   try {
     const { _id } = req.params;
-   
+
     if (!mongoose.Types.ObjectId.isValid(_id)) {
       return res.status(400).json({ success: false, message: "Invalid delivery boy ID" });
     }
@@ -160,7 +181,7 @@ exports.updateOrderStatus = async (req, res) => {
   try {
     const { status } = req.body;
     const order = await Order.findById(req.params.id).populate('deliveryboy_id');
-    
+
 
     if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
@@ -204,67 +225,6 @@ exports.updateOrderIsActive = async (req, res) => {
   }
 };
 
-
-
-// Internal: Update earnings and delivery assessment on delivery
-
-const updateEarnings = async (order) => {
-  try {
-    const deliveryBoy = await DeliveryBoy.findById(order.deliveryboy_id);
-    if (!deliveryBoy) return;
-
-    const baseEarning = 20;
-    const bonus = 0;
-    const deduction = 0;
-    const totalEarning = baseEarning + bonus - deduction;
-
-    let earnings = await Earning.findOne({ delivery_agent_id: deliveryBoy._id });
-
-    if (!earnings) {
-      earnings = new Earning({
-        delivery_agent_id: deliveryBoy._id,
-        current_balance: totalEarning,
-        total_earned: totalEarning,
-        total_orders: 1,
-        order_earnings: [{
-          order_id: order._id,
-          date: new Date(),
-          base_earning: baseEarning,
-          bonus: bonus,
-          deduction: deduction,
-          total_earning: totalEarning
-        }]
-      });
-    } else {
-      earnings.current_balance += totalEarning;
-      earnings.total_earned += totalEarning;
-      earnings.total_orders += 1;
-
-      earnings.order_earnings.push({
-        order_id: order._id,
-        date: new Date(),
-        base_earning: baseEarning,
-        bonus: bonus,
-        deduction: deduction,
-        total_earning: totalEarning
-      });
-    }
-
-    await earnings.save();
-
-    const assessment = new DeliveryAssessment({
-      order_id: order._id,
-      assignment_data_and_time: order.createdAt,
-      delivery_date_time: new Date(),
-      feedback: 'Delivered successfully',
-    });
-
-    await assessment.save();
-  } catch (err) {
-    console.error('Error updating earnings:', err.message);
-  }
-};
- 
 
 exports.updateOrderLocation = async (req, res) => {
   const { orderId } = req.params;
@@ -317,5 +277,397 @@ exports.deleteAllOrders = async (req, res) => {
       success: false,
       message: 'Internal server error',
     });
+  }
+};
+
+exports.acceptOrder = async (req, res) => {
+  const { orderId } = req.params;
+  const deliveryBoyId = req.deliveryBoyId;
+
+  try {
+
+    const deliveryBoy = await DeliveryBoy.findOne({ _id: deliveryBoyId, status: 'Online' });
+    if (!deliveryBoy) {
+      return res.status(403).json({ message: 'You must be online to accept orders' });
+    }
+    const order = await Order.findOneAndUpdate(
+      {
+        _id: orderId,
+        deliveryboy_id: null,
+        status: 'confirmed'
+      },
+      {
+        $set: {
+          deliveryboy_id: deliveryBoyId,
+          status: 'on the way'
+        }
+      },
+      { new: true }
+    );
+
+
+    if (!order) {
+      return res.status(400).json({ message: 'Order already accepted or not available' });
+    }
+
+
+    await DeliveryBoy.findByIdAndUpdate(deliveryBoyId, { status: 'Busy' });
+
+
+    return res.status(200).json({
+      message: 'Order accepted successfully',
+      orderId: order._id,
+      assignedTo: deliveryBoyId
+    });
+  } catch (error) {
+    console.error("Error accepting order:", error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+
+exports.delivered = async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    const order = await Order.findById(orderId).populate('deliveryboy_id');
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (order.status === 'delivered') {
+      return res.status(400).json({ success: false, message: 'Order already marked as delivered' });
+    }
+
+   
+    order.status = 'delivered';
+    order.isActive = false
+    await order.save();
+
+    
+    if (order.deliveryboy_id) {
+      order.deliveryboy_id.status = 'Online';
+      await order.deliveryboy_id.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Order marked as delivered',
+      order,
+    });
+
+  } catch (err) {
+    console.error('Error marking order as delivered:', err);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
+exports.getOrderSummary = async (req, res) => {
+  try {
+    const orders = await Order.find();
+
+    const totalOrders = orders.length;
+    const activeOrders = orders.filter(order => order.isActive).length;
+
+    const totalRevenue = orders.reduce((sum, order) => {
+      return sum + (order.total_amount || 0);
+    }, 0);
+
+    const averageRevenue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    const uniqueCustomers = new Set(orders.map(order => order.user_id?.toString()));
+    const totalCustomers = uniqueCustomers.size;
+
+    const uniqueDeliveryBoys = new Set(orders.map(order => order.deliveryboy_id?.toString()).filter(Boolean));
+    const totalDelivery = uniqueDeliveryBoys.size;
+
+    res.status(200).json({
+      success: true,
+      totalOrders,
+      activeOrders,
+      totalCustomers,
+      totalDelivery,
+      totalRevenue,
+      averageRevenue,
+    });
+  } catch (error) {
+    console.error("Error in getOrderSummary:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+exports.getTotalOrders = async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      totalOrders,
+    });
+  } catch (error) {
+    console.error('Error counting total orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+
+exports.getOrdersGraph = async (req, res) => {
+  const { filter } = req.query;
+
+  try {
+    let groupFormat;
+    let labelFormat;
+    let startDate = moment().startOf('year');
+
+    switch (filter) {
+      case 'daily':
+        startDate = moment().startOf('week');
+        groupFormat = '%Y-%m-%d';
+        labelFormat = 'ddd'; 
+        break;
+      case 'weekly':
+        startDate = moment().subtract(1, 'month');
+        groupFormat = '%Y-%U'; 
+        labelFormat = 'Week W';
+        break;
+      case 'monthly':
+        startDate = moment().startOf('year');
+        groupFormat = '%Y-%m';
+        labelFormat = 'MMM'; 
+        break;
+      case 'yearly':
+      default:
+        startDate = moment().subtract(5, 'years');
+        groupFormat = '%Y';
+        labelFormat = 'YYYY'; 
+        break;
+    }
+
+    const orders = await Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: startDate.toDate() },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: groupFormat,
+              date: '$createdAt',
+            },
+          },
+          orders: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    const formattedData = orders.map((entry) => ({
+      label: formatLabel(entry._id, filter),
+      orders: entry.orders,
+    }));
+
+    res.json({ success: true, data: formattedData });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
+
+function formatLabel(dateStr, filter) {
+  const date = moment(dateStr, filter === 'weekly' ? 'YYYY-ww' : undefined);
+  switch (filter) {
+    case 'daily':
+      return moment(dateStr).format('ddd');
+    case 'weekly':
+      return `Week ${moment(dateStr, 'YYYY-ww').week()}`;
+    case 'monthly':
+      return moment(dateStr).format('MMM');
+    case 'yearly':
+      return moment(dateStr).format('YYYY');
+    default:
+      return dateStr;
+  }
+};
+
+
+exports.getRevenue = async (req, res) => {
+  try {
+    const now = new Date();
+    const range = req.query.range || "all";
+    let match = { status: "delivered" };
+    let groupFormat;
+    let labelFormatter;
+
+    if (range === "this-month") {
+
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      match.createdAt = { $gte: startOfMonth, $lte: endOfMonth };
+
+      groupFormat = { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } };
+      labelFormatter = (label) => {
+        const date = new Date(label);
+        return date.toLocaleDateString("en-US", { day: "numeric", month: "short" });
+      };
+    } else {
+
+      let oldestOrder = await Order.findOne({ status: "delivered" }).sort({ createdAt: 1 }).select("createdAt");
+      const startDate = oldestOrder?.createdAt || new Date(now.getFullYear(), 0, 1);
+      match.createdAt = { $gte: startDate, $lte: now };
+
+      const diffYears = now.getFullYear() - startDate.getFullYear();
+      if (diffYears <= 2) {
+        groupFormat = { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
+        labelFormatter = (label) => {
+          const [year, month] = label.split("-");
+          return new Date(year, month - 1).toLocaleString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+        };
+      } else if (diffYears <= 5) {
+        groupFormat = {
+          $concat: [
+            { $dateToString: { format: "%Y", date: "$createdAt" } },
+            "-Q",
+            {
+              $toString: {
+                $ceil: { $divide: [{ $month: "$createdAt" }, 3] },
+              },
+            },
+          ],
+        };
+        labelFormatter = (label) => label;
+      } else {
+        groupFormat = { $dateToString: { format: "%Y", date: "$createdAt" } };
+        labelFormatter = (label) => label;
+      }
+    }
+
+    const revenueData = await Order.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: groupFormat,
+          revenue: {
+            $sum: {
+              $subtract: ["$total_amount", { $ifNull: ["$discount", 0] }],
+            },
+          },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const formatted = revenueData.map((entry) => ({
+      label: labelFormatter(entry._id),
+      revenue: entry.revenue,
+    }));
+
+    res.status(200).json({ success: true, data: formatted });
+  } catch (error) {
+    console.error("Error fetching revenue:", error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+
+exports.getSales = async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+    const match = {
+      createdAt: { $gte: startOfYear, $lte: endOfMonth },
+      status: "delivered",
+    };
+
+    const salesData = await Order.aggregate([
+      { $match: match },
+      {
+        $group: {
+          _id: { $month: "$createdAt" },
+          sales: { $sum: 1 }, // count orders
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const monthlySales = Array.from({ length: now.getMonth() + 1 }, (_, i) => {
+      const found = salesData.find((m) => m._id === i + 1);
+      return {
+        month: new Date(0, i).toLocaleString("en-US", { month: "short" }),
+        sales: found ? found.sales : 0,
+      };
+    });
+
+    res.status(200).json({ success: true, data: monthlySales });
+  } catch (err) {
+    console.error("Sales data error:", err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+//get revenue
+// exports.getHI = async (req, res) => {
+//   try {
+//     const deliveredOrders = await Order.find({ status: 'delivered' });
+//     let totalRevenue = 0;
+//     deliveredOrders.forEach(order => {
+//       if (order.total_earning !== undefined && order.total_earning !== null) {
+//         totalRevenue += order.total_earning;
+//       } else {
+//         totalRevenue += (order.total_amount || 0) - (order.discount || 0);
+//       }
+//     });
+//     res.status(200).json({ totalRevenue });
+//   } catch (error) {
+//     console.error('Error calculating total revenue:', error);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// };
+
+
+exports.getTotalOrders = async (req, res) => {
+  try {
+    const totalOrders = await Order.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      totalOrders,
+    });
+  } catch (error) {
+    console.error('Error counting total orders:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+    });
+  }
+};
+
+exports.getSummary = async (req, res) => {
+  try {
+    const orders = await Order.find();
+    const totalRevenue = orders.reduce((sum, order) => {
+      return sum + (order.total_amount || 0);
+    }, 0);
+   
+    res.status(200).json({
+      success: true,
+      totalRevenue,
+    });
+  } catch (error) {
+    console.error("Error in getOrderSummary:", error.message);
+    res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

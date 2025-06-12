@@ -32,10 +32,30 @@ const DeliveryBoySchema = new mongoose.Schema({
 }, 
 status: {
     type: String,
-    enum: ['Online', 'Offline', 'Busy'],
-    default: 'Online'
+    enum: ['Online', 'Offline'],
+    default: 'Offline'
   },
+
+  loginSessions:[
+    {
+      loginTime:{
+        type:Date,
+        required:true,
+      
+      },
+
+      logoutTime:{
+        type:Date,
+        default:null,
+      }
+    }
+  ],
+  totalOnlineTimeInMs: {
+    type: Number,
+    default: 0
+  }
 },
+
  {
   timestamps: true 
 });

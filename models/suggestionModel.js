@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 
 const suggestionSchema = new mongoose.Schema({
- userId: {
-        type: String,
-       //  required: true
+    userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    // required: true,
     },
+
         suggestionType: {
         type: String,
         enum: ['Product', 'Bug', 'Feature'], 

@@ -92,7 +92,7 @@ require('dotenv').config();
     
 const getAllDeliveryBoys = async (req, res) => {
   try {
-    const deliveryBoys = await DeliveryBoy.find();
+    const deliveryBoys = await DeliveryBoy.find().sort({name:1});
     res.status(200).json(deliveryBoys);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -110,6 +110,37 @@ const getDeliveryBoyById = async (req, res) => {
     res.status(200).json(deliveryBoy);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+const getStatus = async (req, res) => {
+  try {
+    const activeCount = await DeliveryBoy.countDocuments({ status: 'Online' });
+    const inactiveCount = await DeliveryBoy.countDocuments({ status: { $ne: 'Online' } });
+
+    return res.status(200).json({
+      active: activeCount,
+      inactive: inactiveCount,
+    });
+  } catch (error) {
+    console.error('Error fetching delivery boy status:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+const getBoys = async (req, res) => {
+  try {
+    const count = await DeliveryBoy.countDocuments();
+    res.status(200).json({ count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+const getCount = async (req, res) => {
+  try {
+    const count = await DeliveryBoy.countDocuments({ isRegistered: true });
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error('Error getting registered delivery boys count:', error);
+    res.status(500).json({ message: 'Failed to fetch count' });
   }
 };
 
@@ -195,6 +226,55 @@ const updateDeliveryBoy = async (req, res) => {
 };
 
 
+const updateLoginHours = async (req, res) => {
+  const { status } = req.body;
+  const deliveryBoyId = req.deliveryBoyId;
+
+  try {
+    const deliveryBoy = await DeliveryBoy.findById(deliveryBoyId);
+    if (!deliveryBoy) {
+      return res.status(404).json({ message: 'Delivery boy not found' });
+    }
+
+    if (status && status !== deliveryBoy.status) {
+      if (status === 'Online') {
+        const lastSession = deliveryBoy.loginSessions[deliveryBoy.loginSessions.length - 1];
+        if (!lastSession || lastSession.logoutTime) {
+          deliveryBoy.loginSessions.push({ loginTime: new Date() });
+        }
+      } else if (status === 'Offline') {
+        const lastSession = deliveryBoy.loginSessions[deliveryBoy.loginSessions.length - 1];
+        if (lastSession && !lastSession.logoutTime) {
+          const logoutTime = new Date();
+          const loginTime = new Date(lastSession.loginTime);
+          const sessionDuration = logoutTime - loginTime; 
+
+          lastSession.logoutTime = logoutTime;
+          deliveryBoy.totalOnlineTimeInMs = (deliveryBoy.totalOnlineTimeInMs || 0) + sessionDuration;
+        }
+      }
+
+      deliveryBoy.status = status;
+    }
+    Object.keys(req.body).forEach(key => {
+      if (key !== 'status') {
+        deliveryBoy[key] = req.body[key];
+      }
+    });
+
+    await deliveryBoy.save();
+
+    res.status(200).json({
+      message: 'Status and time updated successfully',
+      totalOnlineTimeInMs: deliveryBoy.totalOnlineTimeInMs
+    });
+
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+
 const deleteDeliveryBoy = async (req, res) => {
   const deliveryBoyId = req.deliveryBoyId;
   try {
@@ -218,5 +298,9 @@ const deleteDeliveryBoy = async (req, res) => {
     otpLogin,
     verifyOtp,
     updateDeliveryBoy,
-    deleteDeliveryBoy
+    deleteDeliveryBoy,
+    updateLoginHours,
+    getStatus,
+    getBoys,
+    getCount
     };
