@@ -92,7 +92,7 @@ require('dotenv').config();
     
 const getAllDeliveryBoys = async (req, res) => {
   try {
-    const deliveryBoys = await DeliveryBoy.find();
+    const deliveryBoys = await DeliveryBoy.find().sort({name:1});
     res.status(200).json(deliveryBoys);
   } catch (error) {
     res.status(500).json({ error: error.message });
