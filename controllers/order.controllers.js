@@ -108,14 +108,13 @@ exports.getOrderById = async (req, res) => {
 
 exports.orderByDeliveryBoyId = async (req, res) => {
   try {
-    const { _id } = req.params;
+    const deliveryBoyId = req.deliveryBoyId;
 
-    if (!mongoose.Types.ObjectId.isValid(_id)) {
+    if (!mongoose.Types.ObjectId.isValid(deliveryBoyId)) {
       return res.status(400).json({ success: false, message: "Invalid delivery boy ID" });
     }
 
-    const deliveryboyId = new mongoose.Types.ObjectId(_id);
-    const orders = await Order.find({ deliveryboy_id: deliveryboyId })
+    const orders = await Order.find({ deliveryboy_id: deliveryBoyId })
       .populate('user_id')
       .populate('address_id');
 
@@ -130,6 +129,8 @@ exports.orderByDeliveryBoyId = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
 
 exports.getOrderByUserId = async (req, res) => {
   try {
@@ -146,7 +147,8 @@ exports.getOrderByUserId = async (req, res) => {
       })
       .populate('user_id')
       .populate('address_id')
-      .populate('deliveryboy_id');
+      .populate('deliveryboy_id')
+    
 
     if (!orders || orders.length === 0) {
       return res.status(404).json({
@@ -299,8 +301,7 @@ exports.acceptOrder = async (req, res) => {
     }
 
 
-    await DeliveryBoy.findByIdAndUpdate(deliveryBoyId, { status: 'Busy' });
-
+  
 
     return res.status(200).json({
       message: 'Order accepted successfully',
