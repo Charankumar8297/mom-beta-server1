@@ -14,7 +14,7 @@ const createMedicine = async (req, res) => {
   try {
     const {
       medicine_name,price,prescriptionDrug,description,use,ingredients,dose,manufacturer,notFor,store,expiryDate,imageUrl,
-      manufactureDate,
+      manufactureDate,discountPrice,
       subCategory, 
     } = req.body;
 
@@ -36,7 +36,7 @@ const createMedicine = async (req, res) => {
     }
     const newMedicine = new Medicine({
       medicine_name,price,prescriptionDrug,description,use,ingredients,dose,manufacturer,notFor,store,expiryDate,
-      manufactureDate,
+      manufactureDate, discounted_price:discountPrice,
       subcategories: [subCategory], 
       imageUrl: result.secure_url,
     });
@@ -54,7 +54,10 @@ const createMedicine = async (req, res) => {
 
 const getMedicines = async (req, res) => {
   try {
-    const medicines = await Medicine.find().populate('subcategories._Id');
+    const medicines = await Medicine.find().populate({
+    path: 'subcategories',
+    populate: { path: 'category' }
+  });
     res.status(200).json(medicines);
   } catch (err) {
     res.status(500).json({ message: err.message });

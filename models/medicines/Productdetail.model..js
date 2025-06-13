@@ -15,6 +15,10 @@ const MedicineSchema = mongoose.Schema(
       required: true,
       default: 0,
     },
+    discounted_price: {
+      type: Number,
+     
+    },
     prescriptionDrug: {
       type: Boolean,
       default: false,

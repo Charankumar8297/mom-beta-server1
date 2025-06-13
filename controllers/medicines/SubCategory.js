@@ -50,20 +50,21 @@ const createSubCategory = async (req, res) => {
 
 
 
-
-
 const getAllSubcategories = async (req, res) => {
   try {
-    const category = await Category.findById(req.params.category_id).populate('medicines');
+    const category = await Category.findById(req.params.category_id).populate({
+      path: 'subcategories',
+      populate: { path: 'medicines' }
+    });
     if (!category) return res.status(404).json({ message: "Category not found" });
-    res.status(200).json(category.subCategories);
+    res.status(200).json(category.subcategories); 
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 const getSubCategories = async (req, res) => {
   try {
-    const subcategories = await SubCategory.find().populate('medicines');
+    const subcategories = await SubCategory.find().populate('medicines').populate('category');
     res.status(200).json(subcategories);
   } catch (err) {
     res.status(500).json({ message: err.message });
