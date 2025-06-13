@@ -472,17 +472,17 @@ function formatLabel(dateStr, filter) {
   const date = moment(dateStr, filter === 'weekly' ? 'YYYY-ww' : undefined);
   switch (filter) {
     case 'daily':
-      return moment(dateStr).format('ddd');
+      return moment(dateStr).format('ddd'); 
     case 'weekly':
-      return Week `${moment(dateStr, 'YYYY-ww').week()}`;
+      return `Week ${moment(dateStr, 'YYYY-ww').week()}`; 
     case 'monthly':
-      return moment(dateStr).format('MMM');
+      return moment(dateStr).format('MMM'); 
     case 'yearly':
-      return moment(dateStr).format('YYYY');
+      return moment(dateStr).format('YYYY'); 
     default:
       return dateStr;
   }
-};
+}
 
 
 exports.getRevenue = async (req, res) => {
