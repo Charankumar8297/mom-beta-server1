@@ -144,6 +144,20 @@ const getCount = async (req, res) => {
   }
 };
 
+
+const getDeliveryBoyByIdID = async (req, res) => {
+  const deliveryBoyId = req.params.id;
+  try {
+    const deliveryBoy = await DeliveryBoy.findById({_id:deliveryBoyId});
+    if (!deliveryBoy) {
+      return res.status(404).json({ message: 'Delivery boy not found' });
+    }
+    res.status(200).json(deliveryBoy);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const otpLogin = async (req, res) => {
     const { mobileNumber } = req.body;
 
@@ -292,7 +306,6 @@ const deleteDeliveryBoy = async (req, res) => {
 
     module.exports = {
       createDeliveryBoy,
-    
     getDeliveryBoyById,
     registerDeliveryBoy,
     otpLogin,
@@ -300,6 +313,7 @@ const deleteDeliveryBoy = async (req, res) => {
     updateDeliveryBoy,
     deleteDeliveryBoy,
     updateLoginHours,
+    getDeliveryBoyByIdID,
     getStatus,
     getBoys,
     getCount
