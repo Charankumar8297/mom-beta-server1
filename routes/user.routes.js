@@ -32,14 +32,4 @@ router.put('/updateAddress' , userAuth, )
 
 router.get('/getbyid/:id', getid)
 
-router.get('/users', async (req, res) => {
-    try {
-      const count = await User.countDocuments();
-      res.json({ count });
-    } catch (err) {
-      console.error('Error in /users:', err);
-      res.status(500).json({ error: 'Failed to fetch user count' });
-    }
-  });
-
 module.exports = router

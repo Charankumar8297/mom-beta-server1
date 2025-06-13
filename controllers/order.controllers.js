@@ -3,6 +3,8 @@ const DeliveryBoy = require('../models/DeliveryBoy');
 const Earning = require('../models/Earning');
 const DeliveryAssessment = require('../models/DeliveryAssessment');
 const Medicine = require('../models/medicines/Productdetail.model.');
+const User=require('../models/user.models');
+const DeliverBoy=require('../models/DeliveryBoy')
 const moment = require('moment');
 const mongoose = require('mongoose');
 
@@ -217,7 +219,7 @@ exports.updateOrderIsActive = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `Order isActive updated to ${isActive}`,
+      message:` Order isActive updated to ${isActive}`,
       order,
     });
   } catch (err) {
@@ -269,7 +271,7 @@ exports.deleteAllOrders = async (req, res) => {
     const result = await Order.deleteMany({});
     return res.status(200).json({
       success: true,
-      message: `${result.deletedCount} order(s) deleted successfully.`,
+      message:` ${result.deletedCount} order(s) deleted successfully.`,
     });
   } catch (err) {
     console.error('Error deleting all orders:', err);
@@ -376,11 +378,12 @@ exports.getOrderSummary = async (req, res) => {
 
     const averageRevenue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
-    const uniqueCustomers = new Set(orders.map(order => order.user_id?.toString()));
-    const totalCustomers = uniqueCustomers.size;
 
-    const uniqueDeliveryBoys = new Set(orders.map(order => order.deliveryboy_id?.toString()).filter(Boolean));
-    const totalDelivery = uniqueDeliveryBoys.size;
+    const totalCustomers = await User.countDocuments();
+
+    const totalDelivery =  orders.filter(order => order.status === "delivered").length;
+
+    const totalDeliveryBoys = await DeliveryBoy.countDocuments();
 
     res.status(200).json({
       success: true,
@@ -390,29 +393,12 @@ exports.getOrderSummary = async (req, res) => {
       totalDelivery,
       totalRevenue,
       averageRevenue,
+      totalDeliveryBoys,
     });
   } catch (error) {
     console.error("Error in getOrderSummary:", error.message);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
-};
-
-
-exports.getTotalOrders = async (req, res) => {
-  try {
-    const totalOrders = await Order.countDocuments();
-
-    res.status(200).json({
-      success: true,
-      totalOrders,
-    });
-  } catch (error) {
-    console.error('Error counting total orders:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
 };
 
 
@@ -488,7 +474,7 @@ function formatLabel(dateStr, filter) {
     case 'daily':
       return moment(dateStr).format('ddd');
     case 'weekly':
-      return `Week ${moment(dateStr, 'YYYY-ww').week()}`;
+      return Week `${moment(dateStr, 'YYYY-ww').week()}`;
     case 'monthly':
       return moment(dateStr).format('MMM');
     case 'yearly':
@@ -636,38 +622,3 @@ exports.getSales = async (req, res) => {
 //     res.status(500).json({ message: 'Internal server error' });
 //   }
 // };
-
-
-exports.getTotalOrders = async (req, res) => {
-  try {
-    const totalOrders = await Order.countDocuments();
-
-    res.status(200).json({
-      success: true,
-      totalOrders,
-    });
-  } catch (error) {
-    console.error('Error counting total orders:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error',
-    });
-  }
-};
-
-exports.getSummary = async (req, res) => {
-  try {
-    const orders = await Order.find();
-    const totalRevenue = orders.reduce((sum, order) => {
-      return sum + (order.total_amount || 0);
-    }, 0);
-   
-    res.status(200).json({
-      success: true,
-      totalRevenue,
-    });
-  } catch (error) {
-    console.error("Error in getOrderSummary:", error.message);
-    res.status(500).json({ success: false, message: "Internal server error" });
-  }
-};

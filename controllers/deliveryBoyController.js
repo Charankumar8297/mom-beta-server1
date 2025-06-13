@@ -90,14 +90,14 @@ require('dotenv').config();
   
 
     
-const getAllDeliveryBoys = async (req, res) => {
-  try {
-    const deliveryBoys = await DeliveryBoy.find().sort({name:1});
-    res.status(200).json(deliveryBoys);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+// const getAllDeliveryBoys = async (req, res) => {
+//   try {
+//     const deliveryBoys = await DeliveryBoy.find().sort({name:1});
+//     res.status(200).json(deliveryBoys);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
 
 const getDeliveryBoyById = async (req, res) => {
@@ -292,7 +292,7 @@ const deleteDeliveryBoy = async (req, res) => {
 
     module.exports = {
       createDeliveryBoy,
-    getAllDeliveryBoys,
+    
     getDeliveryBoyById,
     registerDeliveryBoy,
     otpLogin,
