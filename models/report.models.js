@@ -9,5 +9,9 @@ const reportSchema=new Schema({
         type:String,
         required:true
     },
+    Donar:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Donar'
+    },
 });
 module.exports=mongoose.model('report',reportSchema);

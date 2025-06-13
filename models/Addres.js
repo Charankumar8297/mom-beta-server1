@@ -13,15 +13,19 @@ const addressSchema = mongoose.Schema(
     },
     city: {
       type: String,
-      required: [true, "Please add the city"],
+      required: [false, "Please add the city"],
     },
     street: {
       type: String,
-      required: [true, "Please add the street"],
+      required: [false, "Please add the street"],
     },
     pincode: {
       type: Number,
       required: [true, "Please add the pincode"],
+    },
+    country:{
+      type: String,
+      required: [false, "Please add the pincode"],
     },
     currentLocation: {
       lattitude: {

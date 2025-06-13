@@ -90,14 +90,14 @@ require('dotenv').config();
   
 
     
-const getAllDeliveryBoys = async (req, res) => {
-  try {
-    const deliveryBoys = await DeliveryBoy.find().sort({name:1});
-    res.status(200).json(deliveryBoys);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
+// const getAllDeliveryBoys = async (req, res) => {
+//   try {
+//     const deliveryBoys = await DeliveryBoy.find().sort({name:1});
+//     res.status(200).json(deliveryBoys);
+//   } catch (error) {
+//     res.status(500).json({ error: error.message });
+//   }
+// };
 
 
 const getDeliveryBoyById = async (req, res) => {
@@ -110,6 +110,37 @@ const getDeliveryBoyById = async (req, res) => {
     res.status(200).json(deliveryBoy);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+};
+const getStatus = async (req, res) => {
+  try {
+    const activeCount = await DeliveryBoy.countDocuments({ status: 'Online' });
+    const inactiveCount = await DeliveryBoy.countDocuments({ status: { $ne: 'Online' } });
+
+    return res.status(200).json({
+      active: activeCount,
+      inactive: inactiveCount,
+    });
+  } catch (error) {
+    console.error('Error fetching delivery boy status:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+};
+const getBoys = async (req, res) => {
+  try {
+    const count = await DeliveryBoy.countDocuments();
+    res.status(200).json({ count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+const getCount = async (req, res) => {
+  try {
+    const count = await DeliveryBoy.countDocuments({ isRegistered: true });
+    res.status(200).json({ count });
+  } catch (error) {
+    console.error('Error getting registered delivery boys count:', error);
+    res.status(500).json({ message: 'Failed to fetch count' });
   }
 };
 
@@ -275,7 +306,6 @@ const deleteDeliveryBoy = async (req, res) => {
 
     module.exports = {
       createDeliveryBoy,
-    getAllDeliveryBoys,
     getDeliveryBoyById,
     registerDeliveryBoy,
     otpLogin,
@@ -283,5 +313,8 @@ const deleteDeliveryBoy = async (req, res) => {
     updateDeliveryBoy,
     deleteDeliveryBoy,
     updateLoginHours,
-    getDeliveryBoyByIdID
+    getDeliveryBoyByIdID,
+    getStatus,
+    getBoys,
+    getCount
     };

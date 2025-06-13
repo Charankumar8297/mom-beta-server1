@@ -123,6 +123,53 @@ const completedEarningsByAgentId = async (req, res) => {
   }
 }
 
+const dateRangePayoutByAgentId = async (req, res) => {
+  const agentId = req.deliveryBoyId // Replace with actual agent ID if needed
+  console.log("this is from route", agentId)
+  try {
+    const [startDate, endDate] = req.params.date.split(',').map(date => new Date(date.trim()));
+    endDate.setHours(23, 59, 59, 999); // Set end date to the end of the day
+    const findEarning = await Earnings.findOne({
+      deliveryId: agentId,'orders.EarningStatus': 'completed',
+      orders: {
+        $elemMatch: {
+          createdAt: { $gte: startDate, $lte: endDate },
+        }
+      }
+    });
+    console.log(findEarning)
+    if (!findEarning) {
+      return res.status(404).json({ message: 'Earning not found for this agent' });
+    }
+
+    const totalEarnings = findEarning.orders.reduce((acc, order) => {
+      const orderDate = new Date(order.createdAt);
+      if (orderDate >= startDate && orderDate <= endDate) {
+        return acc + order.total_earning;
+      }
+      return acc;
+    }, 0);
+
+    const earnings = findEarning.orders.filter(order => {
+      const orderDate = new Date(order.createdAt);
+      return orderDate >= startDate && orderDate <= endDate && order.EarningStatus === 'pending';
+    });
+
+    const completedEarning = findEarning.orders.reduce((acc, order) => {
+      const orderDate = new Date(order.createdAt);
+      if (orderDate >= startDate && orderDate <= endDate && order.EarningStatus === 'completed') {
+        return acc + order.total_earning;
+      }
+      return acc;
+    }, 0);
+    res.status(200).json({ earnings:findEarning, completedEarning , totalEarnings });
+
+  } catch (error) {
+    console.error('Error fetching earnings by date range:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+}
+
 
 
 
@@ -195,4 +242,4 @@ const updateEarningById = async (req, res) => {
 
 
 
-module.exports = { createEarning, getEarningByAgentId, getAllEarnings, getPendingByAgentId, completedEarningsByAgentId, dateRangeEarningsByAgentId, updateEarningById };
+module.exports = { createEarning, getEarningByAgentId, getAllEarnings, getPendingByAgentId, completedEarningsByAgentId, dateRangeEarningsByAgentId, updateEarningById,dateRangePayoutByAgentId };
