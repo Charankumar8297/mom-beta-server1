@@ -13,6 +13,7 @@ router.get('/deliveryboy', deliveryBoyAuth, deliveryBoyController.getDeliveryBoy
 router.put('/update', deliveryBoyAuth,deliveryBoyController.updateDeliveryBoy);
 router.delete('/delete', deliveryBoyAuth, deliveryBoyController.deleteDeliveryBoy);
 router.post('/register', deliveryBoyAuth, deliveryBoyController.registerDeliveryBoy);
+router.get('/deliveryboybyid/:id', deliveryBoyController.getDeliveryBoyByIdID);
 
 router.put('/loginhours',deliveryBoyAuth,deliveryBoyController.updateLoginHours)
 module.exports = router;
