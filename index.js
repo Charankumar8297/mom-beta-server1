@@ -13,8 +13,7 @@ const Active = require('./routes/ActiveRoutes')
 const wishlist = require('./routes/wishlistRoutes')
 const StoreAddress = require('./routes/storeAddressRoutes')
 const fileUpload = require('express-fileupload');
-
-
+const AdminRoutes = require("./routes/Admin.routes")
 
 const port = process.env.PORT || 3001
 const sec= process.env.JWT_SECRET
@@ -38,10 +37,9 @@ app.use(session({
       secure: false,                     // ⚠️ true if using HTTPS
       httpOnly: true                     // 🔐 can't access cookie via JS
     }
-  }));
+}));
 
-
-  app.use("/api" , orderRoutes)
+app.use("/api" , orderRoutes)
 app.use("/api/user" , require("./routes/user.routes"))
 app.use("/address", addressRoutes )
 app.use("/delivery", deliveryBoyRoutes)
@@ -51,15 +49,12 @@ app.use("/earning", Earning)
 app.use("/api", DeliveryAssessment)
 app.use("/api/wishlist", wishlist)
 app.use("/storeAddress", StoreAddress)
-
-
 app.use('/api/prescriptions' , require("./routes/prescriptionRoutes"))
 app.use('/api/suggestions', require("./routes/suggestionRoutes"))
 app.use('/api/medicines' , medicineRoutes)
 app.use('/api/medicine', medicineRoutes);
 app.use('/api', Active )
-
-
+app.use("/api/admin" , AdminRoutes)
 
 app.listen(port , ()=>{
     console.log(`app is listening at http://localhost:${port}`)
