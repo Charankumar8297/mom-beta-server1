@@ -16,4 +16,5 @@ router.get('/deliveryboybyid/:id', deliveryBoyController.getDeliveryBoyByIdID);
 router.get('/alldeliverycount', deliveryBoyController.getCount);
 router.get('/status', deliveryBoyController.getStatus);
 router.put('/loginhours',deliveryBoyAuth,deliveryBoyController.updateLoginHours)
+router.get('/alldelivery' , deliveryBoyController.getAllDeliveryBoys)
 module.exports = router;
