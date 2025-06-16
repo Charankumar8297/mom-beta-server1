@@ -42,7 +42,7 @@ router.delete('/delete-all-orders', deleteAllOrders);
 router.get('/getorderuser', userAuth ,getOrderByUserId);
 router.get('/getorderdeliveryboy/:_id',userAuth ,orderByDeliveryBoyId );
 router.delete('/delete-orders-by-user/:userId', userAuth, deleteOrdersByUserId);
-router.post('orders/:orderId/accept',deliveryBoyAuth,acceptOrder);
+router.post('/orders/:orderId/accept',deliveryBoyAuth,acceptOrder);
 
 router.post('delivered/:orderId',delivered);
 
