@@ -17,4 +17,5 @@ router.get('/alldeliverycount', deliveryBoyController.getCount);
 router.get('/status', deliveryBoyController.getStatus);
 router.put('/loginhours',deliveryBoyAuth,deliveryBoyController.updateLoginHours)
 router.get('/alldelivery' , deliveryBoyController.getAllDeliveryBoys)
+router.get('/getDeliveryBoyActiveOrders', deliveryBoyAuth, deliveryBoyController.deliveryBoyActiveOrders);
 module.exports = router;

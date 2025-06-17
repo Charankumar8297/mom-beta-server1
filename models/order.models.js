@@ -8,7 +8,7 @@ const orderSchema = new mongoose.Schema({
   status: {
     type: String,
   
-    enum: ['confirmed', 'on the way', 'delivered', 'cancelled'],
+    enum: ['confirmed','accepted', 'on the way', 'delivered', 'cancelled'],
     default: 'confirmed',
   },
     totalOrders : {type:Number , default:0 },
