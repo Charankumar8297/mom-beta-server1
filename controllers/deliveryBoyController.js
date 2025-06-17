@@ -1,4 +1,7 @@
+
+
 const DeliveryBoy = require('../models/DeliveryBoy');
+const orderModels = require('../models/order.models');
 const jwt = require('jsonwebtoken');
 const twilio = require('twilio');
 const nodemailer = require("nodemailer");
@@ -302,7 +305,19 @@ const deleteDeliveryBoy = async (req, res) => {
   }
 };
 
-    
+const deliveryBoyActiveOrders = async (req , res)=>{
+  const deliveryBoyId = req.deliveryBoyId;
+  try{
+    const orderActive = await orderModels.findOne({deliveryboy_id: deliveryBoyId, status:"accepted" , isActive:true});
+    if(!orderActive){
+      return res.status(404).json({message:"No active orders found"});
+  }
+    res.status(200).json(orderActive);
+}
+catch (error) {
+    console.error('Error fetching active orders:', error);
+    res.status(500).json({ error: error.message });
+}}  
 
     module.exports = {
       createDeliveryBoy,
@@ -317,5 +332,6 @@ const deleteDeliveryBoy = async (req, res) => {
     getStatus,
     getBoys,
     getCount,
-    getAllDeliveryBoys
+    getAllDeliveryBoys,
+    deliveryBoyActiveOrders
     };

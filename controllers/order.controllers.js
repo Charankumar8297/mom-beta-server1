@@ -303,7 +303,7 @@ exports.acceptOrder = async (req, res) => {
       {
         $set: {
           deliveryboy_id: deliveryBoyId,
-          status: 'on the way'
+          status: 'accepted'
         }
       },
       { new: true }
@@ -327,6 +327,8 @@ exports.acceptOrder = async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 };
+
+
 
 
 exports.delivered = async (req, res) => {
@@ -365,7 +367,28 @@ exports.delivered = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
-
+exports.setPickup = async (req, res) => {
+  const { orderId } = req.params;
+  const deliveryBoyId = req.deliveryBoyId;
+  try {
+    const order = await Order.findById(orderId).populate('deliveryboy_id');
+    console.log(order)
+    if(!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    if (order.status !== 'accepted') {
+      return res.status(400).json({ success: false, message: 'Order is not in accepted status' });
+    }
+    order.status = 'on the way';
+    order.isActive = true; 
+    // order.deliveryboy_id.status = 'On the way';
+    await order.save();
+    return res.status(200).json({msg:"order is pickedup"})
+  } catch (error) {
+    console.error("Error fetching order:", error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+}
 exports.getOrderSummary = async (req, res) => {
   try {
     const orders = await Order.find();
