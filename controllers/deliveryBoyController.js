@@ -308,7 +308,7 @@ const deleteDeliveryBoy = async (req, res) => {
 const deliveryBoyActiveOrders = async (req , res)=>{
   const deliveryBoyId = req.deliveryBoyId;
   try{
-    const orderActive = await orderModels.findOne({deliveryboy_id: deliveryBoyId, status:"accepted" , isActive:true});
+    const orderActive = await orderModels.findOne({deliveryboy_id: deliveryBoyId, isActive:true}).sort({ createdAt: -1 });
     if(!orderActive){
       return res.status(404).json({message:"No active orders found"});
   }
