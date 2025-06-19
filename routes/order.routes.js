@@ -47,7 +47,7 @@ router.delete('/delete-orders-by-user/:userId', userAuth, deleteOrdersByUserId);
 router.post('/orders/:orderId/accept',deliveryBoyAuth,acceptOrder);
 router.put("/setPickup/:orderId", deliveryBoyAuth, setPickup)
 router.get('/getOrderHistory',deliveryBoyAuth,getDeliveryBoyOrderHistory)
-router.post('/delivered/:orderId',delivered);
+router.put('/delivered/:orderId',deliveryBoyAuth,delivered);
 
 router.get('/rev', getRevenue);
 router.get('/sales',getSales);
