@@ -28,12 +28,22 @@ const orderSchema = new mongoose.Schema({
   }],
 
   subtotal: { type: Number, required: true },
-  shippingFee: { type: Number, default: 0 },     // renamed from deliveryFee
+  shippingFee: { type: Number, default: 0 },     
   tax: { type: Number, default: 0 },
   discount: { type: Number, default: 0 },
-  total_amount: { type: Number, required: true }, // final amount: subtotal + shipping + tax - discount
+  total_amount: { type: Number, required: true }, 
 
-  paymentMethod: { type: String, enum: ['COD', 'TNPL'], default: 'COD' },
+  paymentMethod: { type: String, enum: ['COD', 'RAZORPAY','PAYU'], default: 'COD' },
+  payment_id: {
+    type:mongoose.Schema.Types.ObjectId,
+    ref: 'Payment',
+    default: null
+  },
+  tipAmount: {
+  type: Number,
+  default: 0,
+},
+
 
   isActive: { type: Boolean, default: true },
 

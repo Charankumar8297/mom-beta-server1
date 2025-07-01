@@ -14,7 +14,7 @@ const wishlist = require('./routes/wishlistRoutes')
 const StoreAddress = require('./routes/storeAddressRoutes')
 const fileUpload = require('express-fileupload');
 const AdminRoutes = require("./routes/Admin.routes")
-
+const Payment = require("./routes/payment.routes")
 const port = process.env.PORT || 3001
 const sec= process.env.JWT_SECRET
 console.log(`this ${sec}`)
@@ -55,6 +55,7 @@ app.use('/api/medicines' , medicineRoutes)
 app.use('/api/medicine', medicineRoutes);
 app.use('/api', Active )
 app.use("/api/admin" , AdminRoutes)
+app.use("/api", Payment)
 
 app.listen(port , ()=>{
     console.log(`app is listening at http://localhost:${port}`)

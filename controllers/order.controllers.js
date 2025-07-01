@@ -3,20 +3,27 @@ const DeliveryBoy = require('../models/DeliveryBoy');
 const Earning = require('../models/Earning');
 const DeliveryAssessment = require('../models/DeliveryAssessment');
 const Medicine = require('../models/medicines/Productdetail.model.');
-const User=require('../models/user.models');
-const DeliverBoy=require('../models/DeliveryBoy')
+const User = require('../models/user.models');
+const DeliverBoy = require('../models/DeliveryBoy');
+const Payment = require('../models/Payment');
+const Razorpay = require('razorpay');
+const crypto = require('crypto');
 const moment = require('moment');
 const mongoose = require('mongoose');
 
-// Create Order
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 function generateOrderIdFromObjectId(objectId) {
-  const hex = objectId.toString().slice(-8);     
-  const decimal = parseInt(hex, 16);             
-  return decimal.toString().padStart(8, '0');     
+  const hex = objectId.toString().slice(-8);
+  const decimal = parseInt(hex, 16);
+  return decimal.toString().padStart(8, '0');
 }
+
 exports.createOrder = async (req, res) => {
   const user_id = req.userId;
-
   const {
     address_id,
     ETA = 10,
@@ -26,6 +33,7 @@ exports.createOrder = async (req, res) => {
     tax = 0,
     discount = 0,
     total_amount,
+    tipAmount =0,
     paymentMethod = 'COD',
     isActive = true,
   } = req.body;
@@ -41,7 +49,7 @@ exports.createOrder = async (req, res) => {
     const tempId = new mongoose.Types.ObjectId();
     const orderId = generateOrderIdFromObjectId(tempId);
 
-    const newOrder = new Order({
+    const order = new Order({
       _id: tempId,
       user_id,
       address_id,
@@ -52,18 +60,59 @@ exports.createOrder = async (req, res) => {
       tax,
       discount,
       total_amount,
+      tipAmount,
       paymentMethod,
       isActive,
       orderId,
       status: 'confirmed',
     });
+    await order.save();
 
-    await newOrder.save();
+    let payment;
+    if (paymentMethod === 'RAZORPAY') {
+      const razorpayOrder = await razorpay.orders.create({
+        amount: total_amount * 100,
+        currency: "INR",
+        receipt: `receipt_${orderId}`
+      });
+
+      console.log("Razorpay Order Created:", razorpayOrder);
+
+      payment = await Payment.create({
+        orderId: order._id,
+        method: 'RAZORPAY',
+        razorpayOrderId: razorpayOrder.id
+      });
+
+      order.payment_id = payment._id;
+      await order.save();
+
+      return res.status(201).json({
+        success: true,
+        message: 'Order created successfully.',
+        order,
+        payment,
+        razorpayOrderId: razorpayOrder.id
+      });
+    } else if (paymentMethod === 'PAYU') {
+      const txnid = `txn_${Date.now()}`;
+      payment = await Payment.create({
+        orderId: order._id,
+        method: 'PAYU',
+        txnid
+      });
+    } else {
+      payment = await Payment.create({ orderId: order._id, method: 'COD', status: 'PENDING' });
+    }
+
+    order.payment_id = payment._id;
+    await order.save();
 
     return res.status(201).json({
       success: true,
       message: 'Order created successfully.',
-      order: newOrder,
+      order,
+      payment
     });
 
   } catch (err) {
@@ -71,6 +120,8 @@ exports.createOrder = async (req, res) => {
     return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
+
+
 exports.getActiveOrders = async (req , res)=>{
   const userId = req.userId
   try{
@@ -83,10 +134,6 @@ exports.getActiveOrders = async (req , res)=>{
   }
 }
 
-
-// Manually assign delivery boy to an order
-
-// Get all orders
 exports.getAllOrders = async (req, res) => {
   try {
     const orders = await Order.find()
@@ -400,12 +447,15 @@ exports.getOrderSummary = async (req, res) => {
       return sum + (order.total_amount || 0);
     }, 0);
 
-    const averageRevenue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const totalTipAmount = orders.reduce((sum, order) => {
+      return sum + (order.tipAmount || 0); // ✅ Safe fallback if tipAmount is undefined
+    }, 0);
 
+    const averageRevenue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
     const totalCustomers = await User.countDocuments();
 
-    const totalDelivery =  orders.filter(order => order.status === "delivered").length;
+    const totalDelivery = orders.filter(order => order.status === "delivered").length;
 
     const totalDeliveryBoys = await DeliveryBoy.countDocuments();
 
@@ -416,6 +466,7 @@ exports.getOrderSummary = async (req, res) => {
       totalCustomers,
       totalDelivery,
       totalRevenue,
+      totalTipAmount,        
       averageRevenue,
       totalDeliveryBoys,
     });
